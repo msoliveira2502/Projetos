@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Meu Orçamento Pessoal</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
+    h1 { text-align: center; color: #222; }
+    .upload { text-align: center; margin-bottom: 30px; }
+    .bar { height: 25px; background: #ddd; margin: 10px 0; border-radius: 5px; position: relative; }
+    .fill { height: 100%; border-radius: 5px; }
+    .label { position: absolute; left: 10px; top: 3px; font-size: 14px; color: #000; }
+    .status { position: absolute; right: 10px; top: 3px; font-size: 14px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Meu Orçamento Pessoal</h1>
+
+  <div class="upload">
+    <input type="file" id="fatura" accept=".csv,.xlsx,.pdf">
+    <button onclick="processar()">Processar Fatura</button>
+  </div>
+
+  <h2>Metas de Gastos</h2>
+  <div id="metas"></div>
+
+  <script>
+    const salario = 10000; // valor base do salário
+    const limites = {
+      essenciais: salario * 0.55,
+      aleatorios: salario * 0.05,
+      dividas: salario * 0.10,
+      grandes: salario * 0.15,
+      investimentos: salario * 0.15
+    };
+
+    let gastos = {
+      essenciais: 5100,
+      aleatorios: 480,
+      dividas: 750,
+      grandes: 1200,
+      investimentos: 1300
+    };
+
+    function desenharMetas() {
+      const metas = document.getElementById('metas');
+      metas.innerHTML = '';
+      for (let tipo in limites) {
+        const perc = Math.min((gastos[tipo] / limites[tipo]) * 100, 100);
+        const cor = perc < 80 ? 'green' : perc < 100 ? 'orange' : 'red';
+        const status = perc < 80 ? 'Dentro do Limite' : perc < 100 ? 'Atenção: Próximo do Limite' : 'Ultrapassou o Limite!';
+        metas.innerHTML += `
+          <div class="bar">
+            <div class="fill" style="width:${perc}%;background:${cor}"></div>
+            <div class="label">${tipo.toUpperCase()} — R$ ${gastos[tipo]} / Limite: R$ ${limites[tipo]}</div>
+            <div class="status" style="color:${cor}">${status}</div>
+          </div>`;
+      }
+    }
+
+    function processar() {
+      const arquivo = document.getElementById('fatura').files[0];
+      if (!arquivo) {
+        alert('Selecione uma fatura para processar.');
+        return;
+      }
+      alert(`Fatura "${arquivo.name}" processada e descartada!`);
+      document.getElementById('fatura').value = ''; // limpa o upload
+      desenharMetas();
+    }
+
+    desenharMetas();
+  </script>
+</body>
+</html>
