@@ -102,42 +102,69 @@ function calcularResumo() {
 }
 
 function graficoMensal() {
+  const mesesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const porMes = {};
+
   lancamentos.forEach(l=>{
     const d = new Date(l.data);
-    const chave = d.getFullYear()+"-"+(d.getMonth()+1);
-    porMes[chave] = (porMes[chave]||0)+l.valor;
+    const mesIndex = d.getMonth();
+    porMes[mesIndex] = (porMes[mesIndex]||0)+l.valor;
   });
+
+  const labels = Object.keys(porMes).map(i => mesesNomes[i]);
+  const valores = Object.values(porMes);
+
   new Chart(document.getElementById("graficoMensal"), {
     type:"bar",
-    data:{labels:Object.keys(porMes), datasets:[{label:"Despesas Mensais", data:Object.values(porMes), backgroundColor:"#f44336"}]}
+    data:{
+      labels:labels,
+      datasets:[{
+        label:"Despesas Mensais",
+        data:valores,
+        backgroundColor:"#f44336"
+      }]
+    },
+    options:{
+      plugins:{
+        title:{display:true,text:"Acompanhamento Mensal"}
+      }
+    }
   });
 }
 
+
 function graficoSemanal() {
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
   const porSemana = {};
   lancamentos.forEach(l=>{
     const d = new Date(l.data);
-    const semana = Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 86400000) + new Date(d.getFullYear(),0,1).getDay()+1)/7);
-    const chave = d.getFullYear()+"-S"+semana;
-    porSemana[chave] = (porSemana[chave]||0)+l.valor;
+    if (d.getMonth() === mesAtual) {
+      const semana = Math.ceil(d.getDate()/7);
+      const chave = "Semana "+semana;
+      porSemana[chave] = (porSemana[chave]||0)+l.valor;
+    }
   });
   new Chart(document.getElementById("graficoSemanal"), {
     type:"line",
-    data:{labels:Object.keys(porSemana), datasets:[{label:"Despesas Semanais", data:Object.values(porSemana), borderColor:"#2196f3"}]}
+    data:{labels:Object.keys(porSemana), datasets:[{label:"Despesas Semanais", data:Object.values(porSemana), borderColor:"#2196f3"}]},
+    options:{plugins:{title:{display:true,text:"Semanas do mês vigente"}}}
   });
 }
 
-function graficoDiario() {
-  const porDia = {};
+
+function graficoCategorias() {
+  const categorias = {Mercado:0, Viagem:0, Contas:0};
   lancamentos.forEach(l=>{
-    porDia[l.data] = (porDia[l.data]||0)+l.valor;
+    if (l.categoria in categorias) categorias[l.categoria]+=l.valor;
   });
   new Chart(document.getElementById("graficoDiario"), {
     type:"pie",
-    data:{labels:Object.keys(porDia), datasets:[{data:Object.values(porDia), backgroundColor:["#4caf50","#f44336","#2196f3","#ff9800"]}]}
+    data:{labels:Object.keys(categorias), datasets:[{data:Object.values(categorias), backgroundColor:["#4caf50","#ff9800","#2196f3"]}]},
+    options:{plugins:{title:{display:true,text:"Despesas por Categoria"}}}
   });
 }
+
 
 // Consulta
 function consultarPorData() {
