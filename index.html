@@ -34,16 +34,22 @@
 
   <!-- Área de consultas -->
   <div class="consulta">
-    <h2>Consultar Lançamentos</h2>
-    <input type="text" id="filtro" placeholder="Digite mês (2026-01), dia (2026-01-05) ou descrição">
-    <button onclick="consultar()">Pesquisar</button>
-    <table id="tabelaResultados">
-      <thead>
-        <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <h2>Consultar Lançamentos</h2>
+  <label for="dataConsulta">Selecione a data:</label>
+  <input type="date" id="dataConsulta">
+  <button onclick="consultarPorData()">Pesquisar</button>
+
+  <input type="text" id="filtroDescricao" placeholder="Descrição (ex: Cartão Nu)">
+  <button onclick="consultarPorDescricao()">Pesquisar</button>
+
+  <table id="tabelaResultados">
+    <thead>
+      <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
 
   <!-- Área de upload de faturas -->
   <div class="upload">
@@ -134,13 +140,21 @@ function graficoDiario() {
 }
 
 // Consulta
-function consultar() {
-  const filtro = document.getElementById("filtro").value.toLowerCase();
+function consultarPorData() {
+  const dataSelecionada = document.getElementById("dataConsulta").value;
+  const resultados = lancamentos.filter(l => l.data === dataSelecionada);
+  preencherTabela(resultados);
+}
+
+function consultarPorDescricao() {
+  const filtro = document.getElementById("filtroDescricao").value.toLowerCase();
   const resultados = lancamentos.filter(l =>
-    l.data.includes(filtro) ||
-    l.descricao.toLowerCase().includes(filtro) ||
-    (new Date(l.data).getFullYear()+"-"+(new Date(l.data).getMonth()+1)).includes(filtro)
+    l.descricao.toLowerCase().includes(filtro)
   );
+  preencherTabela(resultados);
+}
+
+function preencherTabela(resultados) {
   const tbody = document.querySelector("#tabelaResultados tbody");
   tbody.innerHTML = "";
   resultados.forEach(l=>{
@@ -149,6 +163,7 @@ function consultar() {
     tbody.appendChild(tr);
   });
 }
+
 
 // Upload de faturas (PDF/CSV)
 function carregarFatura() {
