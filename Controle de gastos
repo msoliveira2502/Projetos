@@ -2,74 +2,167 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Meu Orçamento Pessoal</title>
+  <title>Controle de Gastos</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
-    h1 { text-align: center; color: #222; }
-    .upload { text-align: center; margin-bottom: 30px; }
-    .bar { height: 25px; background: #ddd; margin: 10px 0; border-radius: 5px; position: relative; }
-    .fill { height: 100%; border-radius: 5px; }
-    .label { position: absolute; left: 10px; top: 3px; font-size: 14px; color: #000; }
-    .status { position: absolute; right: 10px; top: 3px; font-size: 14px; font-weight: bold; }
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { text-align: center; }
+    .resumo { display:flex; gap:20px; justify-content:center; margin:20px 0; }
+    .caixa { flex:1; padding:20px; border-radius:8px; color:#fff; text-align:center; font-weight:bold; }
+    .renda { background:#4caf50; }
+    .despesas { background:#f44336; }
+    .saldo { background:#2196f3; }
+    canvas { margin:20px auto; display:block; }
+    .consulta, .upload { margin:30px auto; width:80%; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    th { background:#eee; }
   </style>
 </head>
 <body>
   <h1>Meu Orçamento Pessoal</h1>
 
-  <div class="upload">
-    <input type="file" id="fatura" accept=".csv,.xlsx,.pdf">
-    <button onclick="processar()">Processar Fatura</button>
+  <div class="resumo">
+    <div class="caixa renda" id="caixaRenda">Renda: R$ 0</div>
+    <div class="caixa despesas" id="caixaDespesas">Despesas: R$ 0</div>
+    <div class="caixa saldo" id="caixaSaldo">Saldo: R$ 0</div>
   </div>
 
-  <h2>Metas de Gastos</h2>
-  <div id="metas"></div>
+  <canvas id="graficoMensal" width="600" height="300"></canvas>
+  <canvas id="graficoSemanal" width="600" height="300"></canvas>
+  <canvas id="graficoDiario" width="600" height="300"></canvas>
 
-  <script>
-    const salario = 10000; // valor base do salário
-    const limites = {
-      essenciais: salario * 0.55,
-      aleatorios: salario * 0.05,
-      dividas: salario * 0.10,
-      grandes: salario * 0.15,
-      investimentos: salario * 0.15
-    };
+  <!-- Área de consultas -->
+  <div class="consulta">
+    <h2>Consultar Lançamentos</h2>
+    <input type="text" id="filtro" placeholder="Digite mês (2026-01), dia (2026-01-05) ou descrição">
+    <button onclick="consultar()">Pesquisar</button>
+    <table id="tabelaResultados">
+      <thead>
+        <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-    let gastos = {
-      essenciais: 5100,
-      aleatorios: 480,
-      dividas: 750,
-      grandes: 1200,
-      investimentos: 1300
-    };
+  <!-- Área de upload de faturas -->
+  <div class="upload">
+    <h2>Carregar Fatura Mensal</h2>
+    <input type="file" id="arquivoFatura" accept=".csv,.pdf">
+    <button onclick="carregarFatura()">Adicionar ao Banco</button>
+  </div>
 
-    function desenharMetas() {
-      const metas = document.getElementById('metas');
-      metas.innerHTML = '';
-      for (let tipo in limites) {
-        const perc = Math.min((gastos[tipo] / limites[tipo]) * 100, 100);
-        const cor = perc < 80 ? 'green' : perc < 100 ? 'orange' : 'red';
-        const status = perc < 80 ? 'Dentro do Limite' : perc < 100 ? 'Atenção: Próximo do Limite' : 'Ultrapassou o Limite!';
-        metas.innerHTML += `
-          <div class="bar">
-            <div class="fill" style="width:${perc}%;background:${cor}"></div>
-            <div class="label">${tipo.toUpperCase()} — R$ ${gastos[tipo]} / Limite: R$ ${limites[tipo]}</div>
-            <div class="status" style="color:${cor}">${status}</div>
-          </div>`;
-      }
-    }
+<script>
+// Dados iniciais da planilha
+let lancamentos = [
+  {data:"2026-01-05", descricao:"Cartão Nu", categoria:"Aleatórios", valor:3305.83},
+  {data:"2026-01-10", descricao:"Cartão BB", categoria:"Aleatórios", valor:1791.82},
+  {data:"2026-01-15", descricao:"Escola Miguel", categoria:"Essenciais", valor:1112.00},
+  {data:"2026-01-20", descricao:"Financiamento Imobiliário", categoria:"Essenciais", valor:5274.88},
+  {data:"2026-02-05", descricao:"Cartão Nu", categoria:"Aleatórios", valor:3768.17},
+  {data:"2026-02-10", descricao:"Cartão BB", categoria:"Aleatórios", valor:3321.55},
+  {data:"2026-02-15", descricao:"Escola Miguel", categoria:"Essenciais", valor:1112.00},
+  {data:"2026-02-20", descricao:"Financiamento Imobiliário", categoria:"Essenciais", valor:5275.00},
+  {data:"2026-03-05", descricao:"Cartão Nu", categoria:"Aleatórios", valor:4562.54},
+  {data:"2026-03-15", descricao:"Escola Miguel", categoria:"Essenciais", valor:1112.00},
+  {data:"2026-03-20", descricao:"Financiamento Imobiliário", categoria:"Essenciais", valor:5275.00},
+  {data:"2026-04-05", descricao:"Cartão Nu", categoria:"Aleatórios", valor:4650.75},
+  {data:"2026-04-15", descricao:"Escola Miguel", categoria:"Essenciais", valor:1112.00},
+  {data:"2026-04-20", descricao:"Financiamento Imobiliário", categoria:"Essenciais", valor:5275.00}
+];
 
-    function processar() {
-      const arquivo = document.getElementById('fatura').files[0];
-      if (!arquivo) {
-        alert('Selecione uma fatura para processar.');
-        return;
-      }
-      alert(`Fatura "${arquivo.name}" processada e descartada!`);
-      document.getElementById('fatura').value = ''; // limpa o upload
-      desenharMetas();
-    }
+// Carregar dados do banco local
+function carregarDados() {
+  const dadosSalvos = localStorage.getItem("lancamentos");
+  if (dadosSalvos) {
+    lancamentos = JSON.parse(dadosSalvos);
+  } else {
+    localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+  }
+}
 
-    desenharMetas();
-  </script>
+// Salvar no banco local
+function salvarDados() {
+  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+}
+
+function calcularResumo() {
+  const renda = 19000;
+  const despesas = lancamentos.reduce((s,v)=>s+v.valor,0);
+  const saldo = renda - despesas;
+  document.getElementById("caixaRenda").innerText = "Renda: R$ " + renda.toFixed(2);
+  document.getElementById("caixaDespesas").innerText = "Despesas: R$ " + despesas.toFixed(2);
+  document.getElementById("caixaSaldo").innerText = "Saldo: R$ " + saldo.toFixed(2);
+}
+
+function graficoMensal() {
+  const porMes = {};
+  lancamentos.forEach(l=>{
+    const d = new Date(l.data);
+    const chave = d.getFullYear()+"-"+(d.getMonth()+1);
+    porMes[chave] = (porMes[chave]||0)+l.valor;
+  });
+  new Chart(document.getElementById("graficoMensal"), {
+    type:"bar",
+    data:{labels:Object.keys(porMes), datasets:[{label:"Despesas Mensais", data:Object.values(porMes), backgroundColor:"#f44336"}]}
+  });
+}
+
+function graficoSemanal() {
+  const porSemana = {};
+  lancamentos.forEach(l=>{
+    const d = new Date(l.data);
+    const semana = Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 86400000) + new Date(d.getFullYear(),0,1).getDay()+1)/7);
+    const chave = d.getFullYear()+"-S"+semana;
+    porSemana[chave] = (porSemana[chave]||0)+l.valor;
+  });
+  new Chart(document.getElementById("graficoSemanal"), {
+    type:"line",
+    data:{labels:Object.keys(porSemana), datasets:[{label:"Despesas Semanais", data:Object.values(porSemana), borderColor:"#2196f3"}]}
+  });
+}
+
+function graficoDiario() {
+  const porDia = {};
+  lancamentos.forEach(l=>{
+    porDia[l.data] = (porDia[l.data]||0)+l.valor;
+  });
+  new Chart(document.getElementById("graficoDiario"), {
+    type:"pie",
+    data:{labels:Object.keys(porDia), datasets:[{data:Object.values(porDia), backgroundColor:["#4caf50","#f44336","#2196f3","#ff9800"]}]}
+  });
+}
+
+// Consulta
+function consultar() {
+  const filtro = document.getElementById("filtro").value.toLowerCase();
+  const resultados = lancamentos.filter(l =>
+    l.data.includes(filtro) ||
+    l.descricao.toLowerCase().includes(filtro) ||
+    (new Date(l.data).getFullYear()+"-"+(new Date(l.data).getMonth()+1)).includes(filtro)
+  );
+  const tbody = document.querySelector("#tabelaResultados tbody");
+  tbody.innerHTML = "";
+  resultados.forEach(l=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${l.data}</td><td>${l.descricao}</td><td>${l.categoria}</td><td>R$ ${l.valor.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Upload de faturas (PDF/CSV)
+function carregarFatura() {
+  const arquivo = document.getElementById("arquivoFatura").files[0];
+  if (!arquivo) { alert("Selecione um arquivo."); return; }
+  // Aqui futuramente vamos implementar a leitura de PDF/CSV
+  alert("Fatura carregada: " + arquivo.name + " (integração futura)");
+}
+
+carregarDados();
+calcularResumo();
+graficoMensal();
+graficoSemanal();
+graficoDiario();
+</script>
 </body>
-</html>
+</html
