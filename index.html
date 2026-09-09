@@ -120,3 +120,21 @@ let lancamentos = [
 
   // Julho
   {data:"2026-07-06
+
+  <script>
+
+function limparBanco() {
+  // Apaga os dados antigos
+  localStorage.removeItem("lancamentos");
+
+  // Regrava os lançamentos atuais no banco
+  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+
+  // Atualiza os gráficos e resumo
+  calcularResumo();
+  graficoMensal();
+  graficoSemanal();
+  graficoCategorias();
+
+  alert("Banco limpo e recarregado com os lançamentos atuais!");
+}
