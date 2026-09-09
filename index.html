@@ -60,11 +60,96 @@
 
 <script>
 // ----------------------
-// Lançamentos corretos (jan–dez/2026)
+// Lançamentos (jan–dez/2026)
 // ----------------------
 let lancamentos = [
-  // Janeiro a Dezembro (lista completa conforme planilha)
-  // ... [Aqui entram todos os lançamentos que já montamos mês a mês]
+ 
+  // Janeiro
+  {data:"2026-01-05", descricao:"Cartão Hiper", categoria:"Cartões", valor:291.00},
+  {data:"2026-01-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3305.83},
+  {data:"2026-01-10", descricao:"Cartão BB", categoria:"Cartões", valor:1791.82},
+  {data:"2026-01-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-01-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5274.88},
+  {data:"2026-01-25", descricao:"Internet", categoria:"Serviços", valor:109.90},
+  {data:"2026-01-26", descricao:"Luz", categoria:"Serviços", valor:90.00},
+  {data:"2026-01-27", descricao:"Água", categoria:"Serviços", valor:118.95},
+
+  // Fevereiro
+  {data:"2026-02-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3768.17},
+  {data:"2026-02-10", descricao:"Cartão BB", categoria:"Cartões", valor:3321.55},
+  {data:"2026-02-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-02-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-02-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
+  {data:"2026-02-26", descricao:"Luz", categoria:"Serviços", valor:250.00},
+  {data:"2026-02-27", descricao:"Água", categoria:"Serviços", valor:119.00},
+
+  // Março
+  {data:"2026-03-06", descricao:"Cartão Nu", categoria:"Cartões", valor:4562.54},
+  {data:"2026-03-10", descricao:"Cartão BB", categoria:"Cartões", valor:1621.68},
+  {data:"2026-03-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-03-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-03-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
+  {data:"2026-03-26", descricao:"Luz", categoria:"Serviços", valor:140.56},
+  {data:"2026-03-27", descricao:"Água", categoria:"Serviços", valor:170.23},
+
+  // Abril
+  {data:"2026-04-06", descricao:"Cartão Nu", categoria:"Cartões", valor:4650.75},
+  {data:"2026-04-10", descricao:"Cartão BB", categoria:"Cartões", valor:4341.44},
+  {data:"2026-04-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-04-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-04-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
+  {data:"2026-04-26", descricao:"Luz", categoria:"Serviços", valor:200.00},
+  {data:"2026-04-27", descricao:"Água", categoria:"Serviços", valor:250.75},
+
+  // Maio
+  {data:"2026-05-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3209.23},
+  {data:"2026-05-10", descricao:"Cartão BB", categoria:"Cartões", valor:2383.68},
+  {data:"2026-05-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-05-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-05-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
+  {data:"2026-05-26", descricao:"Luz", categoria:"Serviços", valor:200.00},
+  {data:"2026-05-27", descricao:"Água", categoria:"Serviços", valor:239.26},
+
+  // Junho
+  {data:"2026-06-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3515.06},
+  {data:"2026-06-10", descricao:"Cartão BB", categoria:"Cartões", valor:2425.24},
+  {data:"2026-06-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-06-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-06-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
+  {data:"2026-06-26", descricao:"Luz", categoria:"Serviços", valor:511.40},
+  {data:"2026-06-27", descricao:"Água", categoria:"Serviços", valor:150.35},
+
+  // Julho
+  {data:"2026-07-06", descricao:"Cartão Nu", categoria:"Cartões", valor:2779.68},
+  {data:"2026-07-10", descricao:"Cartão BB", categoria:"Cartões", valor:697.00},
+  {data:"2026-07-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-07-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-07-25", descricao:"Internet", categoria:"Serviços", valor:112.18},
+  {data:"2026-07-26", descricao:"Luz", categoria:"Serviços", valor:542.65},
+  {data:"2026-07-27", descricao:"Água", categoria:"Serviços", valor:250.00},
+
+  // Agosto
+  {data:"2026-08-06", descricao:"Cartão Nu", categoria:"Cartões", valor:2000.00},
+  {data:"2026-08-10", descricao:"Cartão BB", categoria:"Cartões", valor:659.03},
+  {data:"2026-08-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-08-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-08-25", descricao:"Internet", categoria:"Serviços", valor:112.00},
+  {data:"2026-08-26", descricao:"Luz", categoria:"Serviços", valor:128.00},
+  {data:"2026-08-27", descricao:"Água", categoria:"Serviços", valor:250.00},
+
+  // Setembro
+  {data:"2026-09-06", descricao:"Cartão Nu", categoria:"Cartões", valor:2000.00},
+  {data:"2026-09-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-09-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-09-25", descricao:"Internet", categoria:"Serviços", valor:109.90},
+  {data:"2026-09-26", descricao:"Luz", categoria:"Serviços", valor:250.00},
+  {data:"2026-09-27", descricao:"Água", categoria:"Serviços", valor:250.00},
+
+  // Outubro
+  {data:"2026-10-06", descricao:"Cartão Nu", categoria:"Cartões", valor:2000.00},
+  {data:"2026-10-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
+  {data:"2026-10-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
+  {data:"2026-10-25", descricao:"Internet", categoria:"Serviços", valor:110}
 ];
 
 // ----------------------
