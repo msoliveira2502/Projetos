@@ -117,3 +117,21 @@ let lancamentos = [
   {data:"2026-06-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
   {data:"2026-06-26", descricao:"Luz", categoria:"Serviços", valor:511.40},
   {data:"202
+
+  function limparBanco() {
+  // Apaga os dados antigos
+  localStorage.removeItem("lancamentos");
+
+  // Regrava os lançamentos atuais no banco
+  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+
+  // Atualiza os gráficos e resumo
+  calcularResumo();
+  graficoMensal();
+  graficoSemanal();
+  graficoCategorias();
+
+  alert("Banco limpo e recarregado com os lançamentos atuais!");
+}
+
+<button onclick="limparBanco()">Limpar Banco e Recarregar</button>
