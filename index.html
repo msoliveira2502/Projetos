@@ -55,6 +55,7 @@
     <h2>Carregar Fatura Mensal</h2>
     <input type="file" id="arquivoFatura" accept=".csv,.pdf">
     <button onclick="carregarFatura()">Adicionar ao Banco</button>
+    <button onclick="limparBanco()">Limpar Banco e Recarregar</button>
   </div>
 
 <script>
@@ -73,7 +74,6 @@ let lancamentos = [
   {data:"2026-01-27", descricao:"Água", categoria:"Serviços", valor:118.95},
 
   // Fevereiro
-  {data:"2026-02-05", descricao:"Cartão Hiper", categoria:"Cartões", valor:291.00},
   {data:"2026-02-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3768.17},
   {data:"2026-02-10", descricao:"Cartão BB", categoria:"Cartões", valor:3321.55},
   {data:"2026-02-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
@@ -116,22 +116,7 @@ let lancamentos = [
   {data:"2026-06-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
   {data:"2026-06-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
   {data:"2026-06-26", descricao:"Luz", categoria:"Serviços", valor:511.40},
-  {data:"202
+  {data:"2026-06-27", descricao:"Água", categoria:"Serviços", valor:150.35},
 
-  function limparBanco() {
-  // Apaga os dados antigos
-  localStorage.removeItem("lancamentos");
-
-  // Regrava os lançamentos atuais no banco
-  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
-
-  // Atualiza os gráficos e resumo
-  calcularResumo();
-  graficoMensal();
-  graficoSemanal();
-  graficoCategorias();
-
-  alert("Banco limpo e recarregado com os lançamentos atuais!");
-}
-
-<button onclick="limparBanco()">Limpar Banco e Recarregar</button>
+  // Julho
+  {data:"2026-07-06
