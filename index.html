@@ -164,12 +164,20 @@ function salvarDados() {
 }
 
 function calcularResumo() {
-  const renda = 19000; // saldo inicial
-  const despesas = lancamentos.reduce((s,v)=>s+v.valor,0);
-  const saldo = renda - despesas;
-  document.getElementById("caixaRenda").innerText = "Renda: R$ " + renda.toFixed(2);
-  document.getElementById("caixaDespesas").innerText = "Despesas: R$ " + despesas.toFixed(2);
-  document.getElementById("caixaSaldo").innerText = "Saldo: R$ " + saldo.toFixed(2);
+  const rendaMensal = 19000; // orçamento mensal
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+
+  const despesas = lancamentos
+    .filter(l => new Date(l.data).getMonth() === mesAtual)
+    .reduce((s,v)=>s+v.valor,0);
+
+  const saldo = rendaMensal - despesas;
+
+  document.getElementById("caixaRenda").innerText = "Renda: " + rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaDespesas").innerText = "Despesas: " + despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaSaldo").innerText = "Saldo: " + saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
 }
 
 function graficoMensal() {
@@ -180,12 +188,46 @@ function graficoMensal() {
     const mesIndex = d.getMonth();
     porMes[mesIndex] = (porMes[mesIndex]||0)+l.valor;
   });
+
+  const labels = Object.keys(porMes).map(i => mesesNomes[i]);
+  const valores = Object.values(porMes);
+
+  const limite = 19000; // orçamento mensal
+  const cores = valores.map(v=>{
+    const perc = (v/limite)*100;
+    if (perc <= 90) return "#4caf50"; // verde
+    if (perc <= 100) return "#ffeb3b"; // amarelo
+    return "#f44336"; // vermelho
+  });
+
   new Chart(document.getElementById("graficoMensal"), {
     type:"bar",
-    data:{labels:Object.keys(porMes).map(i=>mesesNomes[i]), datasets:[{label:"Despesas Mensais", data:Object.values(porMes), backgroundColor:"#f44336"}]},
-    options:{plugins:{title:{display:true,text:"Acompanhamento Mensal"}}}
+    data:{
+      labels:labels,
+      datasets:[
+        {
+          label:"Despesas Mensais",
+          data:valores,
+          backgroundColor:cores
+        },
+        {
+          label:"Limite Orçamento",
+          data:Array(valores.length).fill(limite),
+          type:"line",
+          borderColor:"#000",
+          borderWidth:2,
+          pointRadius:0
+        }
+      ]
+    },
+    options:{
+      plugins:{
+        title:{display:true,text:"Acompanhamento Mensal com Limite"}
+      }
+    }
   });
 }
+
 
 function graficoSemanal() {
   const ultimoMes = Math.max(...lancamentos.map(l=>new Date(l.data).getMonth()));
