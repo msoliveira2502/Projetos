@@ -288,7 +288,7 @@ function graficoSemanal() {
   new Chart(document.getElementById("graficoSemanal"), {
     type:"line",
     data:{labels:Object.keys(porSemana), datasets:[{label:"Despesas Semanais", data:Object.values(porSemana), borderColor:"#2196f3"}]},
-    options:{plugins:{title:{display:true,text:"Semanas do último mês"}}}
+    options:{plugins:{title:{display:true,text:"Última Semana do Mês"}}}
   });
 }
 
@@ -313,23 +313,11 @@ function graficoCategorias() {
       plugins:{
         title:{display:true,text:"Despesas por Categoria"},
         datalabels:{
-          formatter:(value,ctx)=>{
-            // Percentual dentro da fatia
-            let perc = (value/total*100).toFixed(1)+"%";
-            return perc;
-          },
           color:"#fff",
           font:{weight:"bold"},
-          // Valor fora da fatia
-          labels:{
-            value:{
-              anchor:"end",
-              align:"end",
-              color:"#000",
-              formatter:(value)=>{
-                return value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-              }
-            }
+          formatter:(value,ctx)=>{
+            let perc = (value/total*100).toFixed(1)+"%";
+            return perc; // apenas percentual
           }
         }
       }
@@ -337,6 +325,7 @@ function graficoCategorias() {
     plugins:[ChartDataLabels]
   });
 }
+
 
 
 
