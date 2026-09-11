@@ -274,23 +274,6 @@ function graficoMensal() {
 }
 
 
-function graficoSemanal() {
-  const ultimoMes = Math.max(...lancamentos.map(l=>new Date(l.data).getMonth()));
-  const porSemana = {};
-  lancamentos.forEach(l=>{
-    const d = new Date(l.data);
-    if (d.getMonth() === ultimoMes) {
-      const semana = Math.ceil(d.getDate()/7);
-      const chave = "Semana "+semana;
-      porSemana[chave] = (porSemana[chave]||0)+l.valor;
-    }
-  });
-  new Chart(document.getElementById("graficoSemanal"), {
-    type:"line",
-    data:{labels:Object.keys(porSemana), datasets:[{label:"Despesas Semanais", data:Object.values(porSemana), borderColor:"#2196f3"}]},
-    options:{plugins:{title:{display:true,text:"Última Semana do Mês"}}}
-  });
-}
 
 function graficoCategorias() {
   const porCategoria = {};
