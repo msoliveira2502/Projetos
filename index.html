@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Controle de Gastos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { text-align: center; }
@@ -295,12 +296,36 @@ function graficoCategorias() {
   lancamentos.forEach(l=>{
     porCategoria[l.categoria] = (porCategoria[l.categoria]||0)+l.valor;
   });
+
+  const total = Object.values(porCategoria).reduce((a,b)=>a+b,0);
+
   new Chart(document.getElementById("graficoCategorias"), {
     type:"pie",
-    data:{labels:Object.keys(porCategoria), datasets:[{data:Object.values(porCategoria), backgroundColor:["#4caf50","#ff9800","#2196f3","#9c27b0","#f44336"]}]},
-    options:{plugins:{title:{display:true,text:"Despesas por Categoria"}}}
+    data:{
+      labels:Object.keys(porCategoria),
+      datasets:[{
+        data:Object.values(porCategoria),
+        backgroundColor:["#4caf50","#ff9800","#2196f3","#9c27b0","#f44336","#795548","#00bcd4"]
+      }]
+    },
+    options:{
+      plugins:{
+        title:{display:true,text:"Despesas por Categoria"},
+        datalabels:{
+          color:"#fff",
+          font:{weight:"bold"},
+          formatter:(value,ctx)=>{
+            let perc = (value/total*100).toFixed(1)+"%";
+            let val = value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+            return perc+" - "+val;
+          }
+        }
+      }
+    },
+    plugins:[ChartDataLabels]
   });
 }
+
 
 function consultarPorData() {
   const dataSelecionada = document.getElementById("dataConsulta").value;
