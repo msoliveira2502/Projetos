@@ -5,6 +5,7 @@
   <title>Controle de Gastos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { text-align: center; }
@@ -312,12 +313,23 @@ function graficoCategorias() {
       plugins:{
         title:{display:true,text:"Despesas por Categoria"},
         datalabels:{
+          formatter:(value,ctx)=>{
+            // Percentual dentro da fatia
+            let perc = (value/total*100).toFixed(1)+"%";
+            return perc;
+          },
           color:"#fff",
           font:{weight:"bold"},
-          formatter:(value,ctx)=>{
-            let perc = (value/total*100).toFixed(1)+"%";
-            let val = value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-            return perc+" - "+val;
+          // Valor fora da fatia
+          labels:{
+            value:{
+              anchor:"end",
+              align:"end",
+              color:"#000",
+              formatter:(value)=>{
+                return value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+              }
+            }
           }
         }
       }
@@ -325,6 +337,7 @@ function graficoCategorias() {
     plugins:[ChartDataLabels]
   });
 }
+
 
 
 function consultarPorData() {
