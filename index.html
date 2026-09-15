@@ -6,6 +6,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
+  <!-- CSS do DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<!-- jQuery + JS do DataTables -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { text-align: center; }
@@ -31,7 +39,23 @@
   </div>
 
   <canvas id="graficoMensal" width="600" height="300"></canvas>
-  <canvas id="graficoSemanal" width="600" height="300"></canvas>
+  <!-- Container da tabela de lançamentos -->
+<div id="containerTabelaLancamentos" style="margin-top:20px;">
+  <table id="tabelaLancamentos" border="1" style="width:100%;">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Categoria</th>
+        <th>Descrição</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Linhas preenchidas via JavaScript -->
+    </tbody>
+  </table>
+</div>
+
   <canvas id="graficoCategorias" width="600" height="300"></canvas>
 
   <!-- Área de consultas -->
@@ -273,6 +297,65 @@ function graficoMensal() {
   });
 }
 
+document.getElementById("mes").addEventListener("change", function(){
+  const mesSelecionado = this.value; // ex: "2026-03"
+
+  let lancamentosFiltrados;
+  if(mesSelecionado){
+    lancamentosFiltrados = lancamentos.filter(l => l.data.startsWith(mesSelecionado));
+  } else {
+    // acumulado até o mês atual
+    const anoMesAtual = "2026-09"; // exemplo
+    lancamentosFiltrados = lancamentos.filter(l => l.data <= anoMesAtual);
+  }
+
+  // Atualiza boxes e gráficos (já implementados)
+  // ...
+
+  // Atualiza tabela
+  atualizarTabela(lancamentosFiltrados);
+});
+
+function atualizarTabela(lancamentosFiltrados){
+  const tbody = document.querySelector("#tabelaLancamentos tbody");
+  tbody.innerHTML = "";
+
+  lancamentosFiltrados.forEach(l=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${l.data}</td>
+      <td>${l.categoria}</td>
+      <td>${l.descricao}</td>
+      <td>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Reinicializa DataTables
+  if ($.fn.DataTable.isDataTable('#tabelaLancamentos')) {
+    $('#tabelaLancamentos').DataTable().destroy();
+  }
+  $('#tabelaLancamentos').DataTable({
+    paging:true,
+    searching:true,
+    ordering:true,
+    info:true,
+    language:{url:"https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"}
+  });
+}
+
+
+$(document).ready(function(){
+  $('#tabelaLancamentos').DataTable({
+    paging: true,        // paginação
+    searching: true,     // caixa de busca
+    ordering: true,      // ordenação por coluna
+    info: true,          // mostra info "exibindo X de Y"
+    language: {
+      url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+    }
+  });
+});
 
 
 function graficoCategorias() {
@@ -309,6 +392,21 @@ function graficoCategorias() {
   });
 }
 
+function atualizarTabela(lancamentosFiltrados){
+  const tbody = document.querySelector("#tabelaLancamentos tbody");
+  tbody.innerHTML = ""; // limpa tabela
+
+  lancamentosFiltrados.forEach(l=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${l.data}</td>
+      <td>${l.categoria}</td>
+      <td>${l.descricao}</td>
+      <td>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
 
 
