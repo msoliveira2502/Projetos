@@ -324,16 +324,39 @@ document.getElementById("mes").addEventListener("change", function(){
   if(mesSelecionado){
     lancamentosFiltrados = lancamentos.filter(l => l.data.startsWith(mesSelecionado));
   } else {
-    // acumulado até o mês atual
-    const anoMesAtual = "2026-09"; // exemplo
-    lancamentosFiltrados = lancamentos.filter(l => l.data <= anoMesAtual);
-  }
+  // Agrupar e somar por descrição
+  const agrupados = {};
+  lancamentos.forEach(l=>{
+    const chave = l.descricao; // ou l.categoria
+    if(!agrupados[chave]){
+      agrupados[chave] = { ...l, valor: 0 };
+    }
+    agrupados[chave].valor += l.valor;
+  });
+  lancamentosFiltrados = Object.values(agrupados);
+}
 
   // Atualiza boxes e gráficos (já implementados)
   // ...
 
   // Atualiza tabela
   atualizarTabela(lancamentosFiltrados);
+
+  // Atualiza tabela
+atualizarTabela(lancamentosFiltrados);
+
+// Atualiza boxes
+const rendaMensal = 19000; // exemplo
+const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
+const saldo = rendaMensal - despesas;
+
+document.getElementById("caixaRenda").innerText = "Renda: " +
+  rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+document.getElementById("caixaDespesas").innerText = "Despesas: " +
+  despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+document.getElementById("caixaSaldo").innerText = "Saldo: " +
+  saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
 });
 
 function atualizarTabela(lancamentosFiltrados){
