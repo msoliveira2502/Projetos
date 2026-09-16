@@ -38,28 +38,24 @@
     <div class="caixa saldo" id="caixaSaldo">Saldo: R$ 0</div>
   </div>
 
-  <div id="filtros" style="margin-bottom:15px;">
-  <label for="mes">Selecione o mês:</label>
-  <select id="mes">
-    <option value="">-- Todos --</option>
-    <option value="2026-01">Janeiro</option>
-    <option value="2026-02">Fevereiro</option>
-    <option value="2026-03">Março</option>
-    <option value="2026-04">Abril</option>
-    <option value="2026-05">Maio</option>
-    <option value="2026-06">Junho</option>
-    <option value="2026-07">Julho</option>
-    <option value="2026-08">Agosto</option>
-    <option value="2026-09">Setembro</option>
-    <option value="2026-10">Outubro</option>
-    <option value="2026-11">Novembro</option>
-    <option value="2026-12">Dezembro</option>
-  </select>
+  <div id="filtros" style="margin-bottom:15px; text-align:center;">
+  <label for="dataInicio">De:</label>
+  <input type="month" id="dataInicio">
+
+  <label for="dataFim">Até:</label>
+  <input type="month" id="dataFim">
+
+  <button id="aplicarFiltro">Aplicar Filtro</button>
 </div>
+
 
 
   <canvas id="graficoMensal" width="600" height="300"></canvas>
   <!-- Container da tabela de lançamentos -->
+<div style="margin:10px; text-align:right;">
+  <label><input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais</label>
+</div>
+
 <div id="containerTabelaLancamentos" style="margin-top:20px;">
   <table id="tabelaLancamentos" border="1" style="width:100%;">
     <thead>
@@ -315,47 +311,30 @@ function graficoMensal() {
   });
 }
 
-document.getElementById("mes").addEventListener("change", function(){
-  const mesSelecionado = this.value; // ex: "2026-03"
+document.getElementById("aplicarFiltro").addEventListener("click", function(){
+  const inicio = document.getElementById("dataInicio").value; // YYYY-MM
+  const fim = document.getElementById("dataFim").value;
 
-  let lancamentosFiltrados;
-  if(mesSelecionado){
-    lancamentosFiltrados = lancamentos.filter(l => l.data.startsWith(mesSelecionado));
-  } else {
-  // Agrupar e somar por descrição
-  const agrupados = {};
-  lancamentos.forEach(l=>{
-    const chave = l.descricao; // ou l.categoria
-    if(!agrupados[chave]){
-      agrupados[chave] = { ...l, valor: 0 };
-    }
-    agrupados[chave].valor += l.valor;
+  // Filtra lançamentos pelo intervalo
+  let lancamentosFiltrados = lancamentos.filter(l=>{
+    const anoMes = l.data.substring(0,7); // pega YYYY-MM
+    return (!inicio || anoMes >= inicio) && (!fim || anoMes <= fim);
   });
-  lancamentosFiltrados = Object.values(agrupados);
-}
 
-  // Atualiza boxes e gráficos (já implementados)
-  // ...
+  // Consolidação opcional (checkbox)
+  lancamentosFiltrados = prepararDados(lancamentosFiltrados);
 
-  // Atualiza tabela
+  // Atualiza tabela e boxes
   atualizarTabela(lancamentosFiltrados);
-
-  // Atualiza tabela
-atualizarTabela(lancamentosFiltrados);
-
-// Atualiza boxes
-const rendaMensal = 19000; // exemplo
-const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
-const saldo = rendaMensal - despesas;
-
-document.getElementById("caixaRenda").innerText = "Renda: " +
-  rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-document.getElementById("caixaDespesas").innerText = "Despesas: " +
-  despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-document.getElementById("caixaSaldo").innerText = "Saldo: " +
-  saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
+  atualizarBoxes(lancamentosFiltrados);
 });
+
+
+const limites = {
+  "Educação": 2000,
+  "Cartões": 5000,
+  "Casa/Transporte": 6000
+};
 
 function atualizarTabela(lancamentosFiltrados){
   const tbody = document.querySelector("#tabelaLancamentos tbody");
@@ -363,27 +342,18 @@ function atualizarTabela(lancamentosFiltrados){
 
   lancamentosFiltrados.forEach(l=>{
     const tr = document.createElement("tr");
+    const limite = limites[l.categoria] || Infinity;
+    const alerta = l.valor > limite ? " style='background:#fdd; font-weight:bold;'" : "";
     tr.innerHTML = `
       <td>${l.data}</td>
       <td>${l.categoria}</td>
       <td>${l.descricao}</td>
-      <td>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+      <td${alerta}>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
     `;
     tbody.appendChild(tr);
   });
-
-  // Reinicializa DataTables
-  if ($.fn.DataTable.isDataTable('#tabelaLancamentos')) {
-    $('#tabelaLancamentos').DataTable().destroy();
-  }
-  $('#tabelaLancamentos').DataTable({
-    paging:true,
-    searching:true,
-    ordering:true,
-    info:true,
-    language:{url:"https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"}
-  });
 }
+
 
 
 $(document).ready(function(){
@@ -432,6 +402,20 @@ function graficoCategorias() {
     plugins:[ChartDataLabels]
   });
 }
+
+function atualizarBoxes(lancamentosFiltrados){
+  const rendaMensal = 19000; // exemplo
+  const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
+  const saldo = rendaMensal - despesas;
+
+  document.getElementById("caixaRenda").innerText = "Renda: " +
+    rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaDespesas").innerText = "Despesas: " +
+    despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaSaldo").innerText = "Saldo: " +
+    saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
 
 function atualizarTabela(lancamentosFiltrados){
   const tbody = document.querySelector("#tabelaLancamentos tbody");
