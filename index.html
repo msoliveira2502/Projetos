@@ -317,7 +317,7 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
 
   // Filtra lançamentos pelo intervalo
   let lancamentosFiltrados = lancamentos.filter(l=>{
-    const anoMes = l.data.substring(0,7); // pega YYYY-MM
+    const anoMes = l.data.substring(0,7);
     return (!inicio || anoMes >= inicio) && (!fim || anoMes <= fim);
   });
 
@@ -328,6 +328,7 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   atualizarTabela(lancamentosFiltrados);
   atualizarBoxes(lancamentosFiltrados);
 });
+
 
 
 const limites = {
@@ -404,17 +405,28 @@ function graficoCategorias() {
 }
 
 function atualizarBoxes(lancamentosFiltrados){
-  const rendaMensal = 19000; // exemplo
+  const rendaMensal = 19000; // exemplo fixo, pode ser variável
   const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
   const saldo = rendaMensal - despesas;
 
-  document.getElementById("caixaRenda").innerText = "Renda: " +
-    rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaDespesas").innerText = "Despesas: " +
-    despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaSaldo").innerText = "Saldo: " +
-    saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const caixaRenda = document.getElementById("caixaRenda");
+  const caixaDespesas = document.getElementById("caixaDespesas");
+  const caixaSaldo = document.getElementById("caixaSaldo");
+
+  caixaRenda.innerText = "Renda: " + rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  caixaDespesas.innerText = "Despesas: " + despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  caixaSaldo.innerText = "Saldo: " + saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+  // Alerta visual se despesas > renda
+  if(despesas > rendaMensal){
+    caixaDespesas.style.background = "#f44336"; // vermelho
+    caixaSaldo.style.background = "#f44336";
+  } else {
+    caixaDespesas.style.background = "#4caf50"; // verde
+    caixaSaldo.style.background = "#2196f3"; // azul
+  }
 }
+
 
 
 function atualizarTabela(lancamentosFiltrados){
