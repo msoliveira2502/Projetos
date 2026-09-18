@@ -298,6 +298,7 @@ function graficoMensal(lancamentosFiltrados){
 }
 
 
+
 function atualizarBoxes(lancamentosFiltrados){
   const rendaMensal = 19000; // orçamento mensal fixo
   const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
@@ -313,15 +314,17 @@ function atualizarBoxes(lancamentosFiltrados){
 
 
 
-document.getElementById("mes").addEventListener("change", function(){
-  const mesSelecionado = this.value; // ex: "2026-03"
+document.getElementById("aplicarFiltro").addEventListener("click", function(){
+  const inicio = document.getElementById("dataInicio").value; // YYYY-MM
+  const fim = document.getElementById("dataFim").value;
 
-  let lancamentosFiltrados;
-  if(mesSelecionado){
-    lancamentosFiltrados = lancamentos.filter(l => l.data.startsWith(mesSelecionado));
-  } else {
-    lancamentosFiltrados = lancamentos; // todos
-  }
+  let lancamentosFiltrados = lancamentos.filter(l=>{
+    const anoMes = l.data.substring(0,7);
+    return (!inicio || anoMes >= inicio) && (!fim || anoMes <= fim);
+  });
+
+  // Consolidação opcional
+  lancamentosFiltrados = prepararDados(lancamentosFiltrados);
 
   // Atualiza tabela, boxes e gráfico
   atualizarTabela(lancamentosFiltrados);
@@ -331,29 +334,13 @@ document.getElementById("mes").addEventListener("change", function(){
 
 
 
+
 const limites = {
   "Educação": 2000,
   "Cartões": 5000,
   "Casa/Transporte": 6000
 };
 
-function atualizarTabela(lancamentosFiltrados){
-  const tbody = document.querySelector("#tabelaLancamentos tbody");
-  tbody.innerHTML = "";
-
-  lancamentosFiltrados.forEach(l=>{
-    const tr = document.createElement("tr");
-    const limite = limites[l.categoria] || Infinity;
-    const alerta = l.valor > limite ? " style='background:#fdd; font-weight:bold;'" : "";
-    tr.innerHTML = `
-      <td>${l.data}</td>
-      <td>${l.categoria}</td>
-      <td>${l.descricao}</td>
-      <td${alerta}>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
 
 
 $(document).ready(function(){
