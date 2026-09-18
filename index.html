@@ -298,24 +298,37 @@ function graficoMensal(lancamentosFiltrados){
 }
 
 
-document.getElementById("aplicarFiltro").addEventListener("click", function(){
-  const inicio = document.getElementById("dataInicio").value; // YYYY-MM
-  const fim = document.getElementById("dataFim").value;
+function atualizarBoxes(lancamentosFiltrados){
+  const rendaMensal = 19000; // orçamento mensal fixo
+  const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
+  const saldo = rendaMensal - despesas;
 
-  // Filtra lançamentos pelo intervalo
-  let lancamentosFiltrados = lancamentos.filter(l=>{
-    const anoMes = l.data.substring(0,7);
-    return (!inicio || anoMes >= inicio) && (!fim || anoMes <= fim);
-  });
+  document.getElementById("caixaRenda").innerText = "Renda: " +
+    rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaDespesas").innerText = "Despesas: " +
+    despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  document.getElementById("caixaSaldo").innerText = "Saldo: " +
+    saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
 
-  // Consolidação opcional (checkbox)
-  lancamentosFiltrados = prepararDados(lancamentosFiltrados);
+
+
+document.getElementById("mes").addEventListener("change", function(){
+  const mesSelecionado = this.value; // ex: "2026-03"
+
+  let lancamentosFiltrados;
+  if(mesSelecionado){
+    lancamentosFiltrados = lancamentos.filter(l => l.data.startsWith(mesSelecionado));
+  } else {
+    lancamentosFiltrados = lancamentos; // todos
+  }
 
   // Atualiza tabela, boxes e gráfico
   atualizarTabela(lancamentosFiltrados);
   atualizarBoxes(lancamentosFiltrados);
   graficoMensal(lancamentosFiltrados);
 });
+
 
 
 const limites = {
@@ -389,30 +402,6 @@ function graficoCategorias() {
     plugins:[ChartDataLabels]
   });
 }
-
-function atualizarBoxes(lancamentosFiltrados){
-  const rendaMensal = 19000; // exemplo fixo, pode ser variável
-  const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
-  const saldo = rendaMensal - despesas;
-
-  const caixaRenda = document.getElementById("caixaRenda");
-  const caixaDespesas = document.getElementById("caixaDespesas");
-  const caixaSaldo = document.getElementById("caixaSaldo");
-
-  caixaRenda.innerText = "Renda: " + rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  caixaDespesas.innerText = "Despesas: " + despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  caixaSaldo.innerText = "Saldo: " + saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-  // Alerta visual se despesas > renda
-  if(despesas > rendaMensal){
-    caixaDespesas.style.background = "#f44336"; // vermelho
-    caixaSaldo.style.background = "#f44336";
-  } else {
-    caixaDespesas.style.background = "#4caf50"; // verde
-    caixaSaldo.style.background = "#2196f3"; // azul
-  }
-}
-
 
 
 function atualizarTabela(lancamentosFiltrados){
