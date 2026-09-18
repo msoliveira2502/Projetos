@@ -263,10 +263,11 @@ function calcularResumo() {
 
 }
 
-function graficoMensal() {
+function graficoMensal(lancamentosFiltrados){
   const mesesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const porMes = {};
-  lancamentos.forEach(l=>{
+
+  lancamentosFiltrados.forEach(l=>{
     const d = new Date(l.data);
     const mesIndex = d.getMonth();
     porMes[mesIndex] = (porMes[mesIndex]||0)+l.valor;
@@ -275,41 +276,27 @@ function graficoMensal() {
   const labels = Object.keys(porMes).map(i => mesesNomes[i]);
   const valores = Object.values(porMes);
 
-  const limite = 19000; // orçamento mensal
+  const limite = 19000;
   const cores = valores.map(v=>{
     const perc = (v/limite)*100;
-    if (perc <= 90) return "#4caf50"; // verde
-    if (perc <= 100) return "#ffeb3b"; // amarelo
-    return "#f44336"; // vermelho
+    if(perc <= 90) return "#4caf50";
+    if(perc <= 100) return "#ffeb3b";
+    return "#f44336";
   });
 
   new Chart(document.getElementById("graficoMensal"), {
-    type:"bar",
-    data:{
-      labels:labels,
-      datasets:[
-        {
-          label:"Despesas Mensais",
-          data:valores,
-          backgroundColor:cores
-        },
-        {
-          label:"Limite Orçamento",
-          data:Array(valores.length).fill(limite),
-          type:"line",
-          borderColor:"#000",
-          borderWidth:2,
-          pointRadius:0
-        }
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "Despesas Mensais", data: valores, backgroundColor: cores },
+        { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#000", borderWidth: 2, pointRadius: 0 }
       ]
     },
-    options:{
-      plugins:{
-        title:{display:true,text:"Acompanhamento Mensal com Limite"}
-      }
-    }
+    options: { plugins: { title: { display: true, text: "Acompanhamento Mensal com Limite" } } }
   });
 }
+
 
 document.getElementById("aplicarFiltro").addEventListener("click", function(){
   const inicio = document.getElementById("dataInicio").value; // YYYY-MM
@@ -324,11 +311,11 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   // Consolidação opcional (checkbox)
   lancamentosFiltrados = prepararDados(lancamentosFiltrados);
 
-  // Atualiza tabela e boxes
+  // Atualiza tabela, boxes e gráfico
   atualizarTabela(lancamentosFiltrados);
   atualizarBoxes(lancamentosFiltrados);
+  graficoMensal(lancamentosFiltrados);
 });
-
 
 
 const limites = {
@@ -354,7 +341,6 @@ function atualizarTabela(lancamentosFiltrados){
     tbody.appendChild(tr);
   });
 }
-
 
 
 $(document).ready(function(){
