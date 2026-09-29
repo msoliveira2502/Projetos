@@ -268,7 +268,7 @@ let lancamentos = [
 ];
 
 let chartMensal = null;
-let chartCategorias
+let chartCategorias = null;
 
 
 const CONFIG = {
@@ -567,10 +567,12 @@ function carregarFatura() {
 function limparBanco() {
   localStorage.removeItem("lancamentos");
   localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+  atualizarTabela(lancamentos);
   atualizarBoxes(lancamentos);
-  graficoMensal();
-  graficoSemanal();
+  graficoMensal(lancamentos);
   graficoCategorias();
+  gerarAlertas();
+  resumoCategorias();
   alert("Banco limpo e recarregado com os lançamentos atuais!");
 }
 
@@ -622,21 +624,20 @@ function resumoCategorias(){
     });
 }
 
-console.log("Qtd lançamentos:", lancamentos.length);
-console.log(lancamentos);
-
-console.log("Primeiro lançamento:",lancamentos[0]);
+console.log("Total de lançamentos:",lancamentos.length);
 
 
 // ----------------------
 // Inicialização
 // ----------------------
 
+atualizarTabela(lancamentos);
 atualizarBoxes(lancamentos);
-graficoMensal();
-graficoSemanal();
+graficoMensal(lancamentos);
 graficoCategorias();
+gerarAlertas();
 resumoCategorias();
+
 </script>
 </body>
 </html>
