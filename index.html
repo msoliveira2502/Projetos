@@ -33,14 +33,20 @@
   <h1>Meu Orçamento Pessoal</h1>
 
   <div class="resumo">
-    <div class="caixa renda" id="caixaRenda">Renda: R$ 0</div>
-    <div class="caixa despesas" id="caixaDespesas">Despesas: R$ 0</div>
-    <div class="caixa saldo" id="caixaSaldo">Saldo: R$ 0</div>
-  </div>
+  <div class="caixa renda" id="caixaRenda"></div>
+  <div class="caixa despesas" id="caixaDespesas"></div>
+  <div class="caixa saldo" id="caixaSaldo"></div>
+  <div class="caixa" id="caixaComprometimento" style="background:#ff9800"></div>
+  <div class="caixa" id="caixaSaude" style="background:#607d8b"></div>
+</div>
 
   <div id="filtros" style="margin-bottom:15px; text-align:center;">
   <label for="dataInicio">De:</label>
   <input type="month" id="dataInicio">
+
+ <div id="alertas"
+     style="margin:20px;padding:15px;border-radius:8px;background:#fff3cd">
+</div> 
 
   <label for="dataFim">Até:</label>
   <input type="month" id="dataFim">
@@ -51,6 +57,41 @@
 
 
   <canvas id="graficoMensal" width="600" height="300"></canvas>
+  <canvas id="graficoCategorias" width="600" height="300"></canvas>
+
+<h2>Resumo por Categoria</h2>
+
+<table id="tabelaCategorias">
+  <thead>
+    <tr>
+      <th>Categoria</th>
+      <th>Total</th>
+      <th>%</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Top 10 Gastos</h2>
+
+<table id="rankingGastos">
+  <thead>
+    <tr>
+      <th>Descrição</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Projeção Financeira</h2>
+
+<div id="projecao"
+     style="padding:20px;background:#f5f5f5;border-radius:8px">
+</div>
+
+
+
   <!-- Container da tabela de lançamentos -->
 <div style="margin:10px; text-align:right;">
   <label><input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais</label>
@@ -88,14 +129,6 @@
       </thead>
       <tbody></tbody>
     </table>
-  </div>
-
-  <!-- Área de upload de faturas -->
-  <div class="upload">
-    <h2>Carregar Fatura Mensal</h2>
-    <input type="file" id="arquivoFatura" accept=".csv,.pdf">
-    <button onclick="carregarFatura()">Adicionar ao Banco</button>
-    <button onclick="limparBanco()">Limpar Banco e Recarregar</button>
   </div>
 
 <script>
@@ -234,12 +267,23 @@ let lancamentos = [
   {data:"2026-10-28", descricao:"Água", categoria:"Serviços", valor:250.00},
 ];
 
+let chartMensal = null;
+let chartCategorias
+
+
+const CONFIG = {
+  rendaMensal: 19000
+};
 
 // ----------------------
 // Funções principais
 // ----------------------
-function carregarDados() {
-  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+
+function inicializarCache() {
+  localStorage.setItem(
+    "lancamentos",
+    JSON.stringify(lancamentos)
+  );
 }
 
 function salvarDados() {
@@ -264,6 +308,9 @@ function calcularResumo() {
 }
 
 function graficoMensal(lancamentosFiltrados){
+
+  if(chartMensal){
+    chartMensal.destroy ();}
   const mesesNomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
   const porMes = {};
 
@@ -284,7 +331,7 @@ function graficoMensal(lancamentosFiltrados){
     return "#f44336";
   });
 
-  new Chart(document.getElementById("graficoMensal"), {
+ chartMensal = new Chart(document.getElementById("graficoMensal"),{
     type: "bar",
     data: {
       labels: labels,
@@ -299,19 +346,61 @@ function graficoMensal(lancamentosFiltrados){
 
 
 
-function atualizarBoxes(lancamentosFiltrados){
-  const rendaMensal = 19000; // orçamento mensal fixo
-  const despesas = lancamentosFiltrados.reduce((s,v)=>s+v.valor,0);
-  const saldo = rendaMensal - despesas;
+function atualizarBoxes(dados){
 
-  document.getElementById("caixaRenda").innerText = "Renda: " +
-    rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaDespesas").innerText = "Despesas: " +
-    despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaSaldo").innerText = "Saldo: " +
-    saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const despesas =
+    dados.reduce(
+      (s,v)=>s+v.valor,
+      0
+    );
+
+  const saldo =
+    CONFIG.rendaMensal - despesas;
+
+  const comprometimento =
+    (despesas / CONFIG.rendaMensal) * 100;
+
+  document.getElementById("caixaRenda")
+    .innerHTML =
+    `<b>Renda</b><br>
+     ${CONFIG.rendaMensal.toLocaleString(
+       "pt-BR",
+       {style:"currency",currency:"BRL"}
+     )}`;
+
+  document.getElementById("caixaDespesas")
+    .innerHTML =
+    `<b>Despesas</b><br>
+     ${despesas.toLocaleString(
+       "pt-BR",
+       {style:"currency",currency:"BRL"}
+     )}`;
+
+  document.getElementById("caixaSaldo")
+    .innerHTML =
+    `<b>Saldo</b><br>
+     ${saldo.toLocaleString(
+       "pt-BR",
+       {style:"currency",currency:"BRL"}
+     )}`;
+
+  document.getElementById("caixaComprometimento")
+    .innerHTML =
+    `<b>Comprometimento</b><br>
+     ${comprometimento.toFixed(1)}%`;
+
+  let status="🟢 Saudável";
+
+  if(comprometimento>80)
+    status="🟡 Atenção";
+
+  if(comprometimento>95)
+    status="🔴 Crítico";
+
+  document.getElementById("caixaSaude")
+    .innerHTML =
+    `<b>Saúde Financeira</b><br>${status}`;
 }
-
 
 
 document.getElementById("aplicarFiltro").addEventListener("click", function(){
@@ -331,6 +420,44 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   atualizarBoxes(lancamentosFiltrados);
 });
 
+function gerarAlertas(){
+
+  let html="";
+
+  Object.keys(limites)
+  .forEach(cat=>{
+
+    const gasto =
+      lancamentos
+      .filter(
+        l=>l.categoria===cat
+      )
+      .reduce(
+        (s,v)=>s+v.valor,
+        0
+      );
+
+    if(gasto > limites[cat]){
+
+      html += `
+      <p>
+        ⚠ ${cat}
+        ultrapassou limite
+        (${gasto.toLocaleString(
+          "pt-BR",
+          {
+            style:"currency",
+            currency:"BRL"
+          }
+        )})
+      </p>`;
+    }
+  });
+
+  document.getElementById(
+    "alertas"
+  ).innerHTML = html;
+}
 
 
 
@@ -363,7 +490,7 @@ function graficoCategorias() {
 
   const total = Object.values(porCategoria).reduce((a,b)=>a+b,0);
 
-  new Chart(document.getElementById("graficoCategorias"), {
+  chartCategorias = new Chart(document.getElementById("graficoCategorias"), {
     type:"pie",
     data:{
       labels:Object.keys(porCategoria),
@@ -388,6 +515,7 @@ function graficoCategorias() {
     plugins:[ChartDataLabels]
   });
 }
+
 
 
 function atualizarTabela(lancamentosFiltrados){
@@ -439,21 +567,70 @@ function carregarFatura() {
 function limparBanco() {
   localStorage.removeItem("lancamentos");
   localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
-  calcularResumo();
+  atualizarBoxes(lancamentos);
   graficoMensal();
   graficoSemanal();
   graficoCategorias();
   alert("Banco limpo e recarregado com os lançamentos atuais!");
 }
 
+function resumoCategorias(){
+
+  const mapa = {};
+
+  lancamentos.forEach(l => {
+
+    mapa[l.categoria] =
+      (mapa[l.categoria] || 0)
+      + l.valor;
+
+  });
+
+  const total =
+    Object.values(mapa)
+      .reduce((a,b)=>a+b,0);
+
+  const tbody =
+    document.querySelector(
+      "#tabelaCategorias tbody"
+    );
+
+  tbody.innerHTML = "";
+
+  Object.entries(mapa)
+    .forEach(([categoria,valor])=>{
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${categoria}</td>
+
+          <td>
+            ${valor.toLocaleString(
+              "pt-BR",
+              {
+                style:"currency",
+                currency:"BRL"
+              }
+            )}
+          </td>
+
+          <td>
+            ${(valor/total*100).toFixed(1)}%
+          </td>
+        </tr>
+      `;
+    });
+}
+
 // ----------------------
 // Inicialização
 // ----------------------
 carregarDados();
-calcularResumo();
+atualizarBoxes(lancamentos);
 graficoMensal();
 graficoSemanal();
 graficoCategorias();
+resumoCategorias();
 </script>
 </body>
 </html>
