@@ -268,6 +268,7 @@ let lancamentos = [
 
 let chartMensal = null;
 let chartCategorias = null;
+let dadosAtualDashboard = [];
 
 
 const CONFIG = {
@@ -415,11 +416,18 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   lancamentosFiltrados = prepararDados(lancamentosFiltrados);
 
   // Atualiza tabela, boxes e gráfico
-  atualizarTabela(lancamentosFiltrados);
-  atualizarBoxes(lancamentosFiltrados);
+  dadosAtualDashboard =[...lancamentosFiltrados];
+  atualizarTabela(dadosAtualDashboard);
+  atualizarBoxes(dadosAtualDashboard);
+  graficoMensal(dadosAtualDashboard);
+  graficoCategorias(dadosAtualDashboard);
+  gerarAlertas(dadosAtualDashboard);
+  resumoCategorias(dadosAtualDashboard);
+  gerarRanking(dadosAtualDashboard);
+  calcularProjecao(dadosAtualDashboard);
 });
 
-function gerarAlertas(){
+function gerarAlertas(dados){
 
   let html="";
 
@@ -427,7 +435,7 @@ function gerarAlertas(){
   .forEach(cat=>{
 
     const gasto =
-      lancamentos
+      dados
       .filter(
         l=>l.categoria===cat
       )
@@ -481,9 +489,9 @@ $(document).ready(function(){
 });
 
 
-function graficoCategorias() {
+function graficoCategorias(dados) {
   const porCategoria = {};
-  lancamentos.forEach(l=>{
+  dados.forEach(l=>{
     porCategoria[l.categoria] = (porCategoria[l.categoria]||0)+l.valor;
   });
 
@@ -575,11 +583,11 @@ function limparBanco() {
   alert("Banco limpo e recarregado com os lançamentos atuais!");
 }
 
-function resumoCategorias(){
+function resumoCategorias(dados){
 
   const mapa = {};
 
-  lancamentos.forEach(l => {
+  dados.forEach(l => {
 
     mapa[l.categoria] =
       (mapa[l.categoria] || 0)
@@ -630,12 +638,15 @@ console.log("Total de lançamentos:",lancamentos.length);
 // Inicialização
 // ----------------------
 
-atualizarTabela(lancamentos);
-atualizarBoxes(lancamentos);
-graficoMensal(lancamentos);
-graficoCategorias();
-gerarAlertas();
-resumoCategorias();
+dadosAtualDashboard = [...lancamentos];
+atualizarTabela(dadosAtualDashboard);
+atualizarBoxes(dadosAtualDashboard);
+graficoMensal(dadosAtualDashboard);
+graficoCategorias(dadosAtualDashboard);
+gerarAlertas(dadosAtualDashboard);
+resumoCategorias(dadosAtualDashboard);
+gerarRanking(dadosAtualDashboard);
+calcularProjecao(dadosAtualDashboard);
 
 </script>
 </body>
