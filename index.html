@@ -585,9 +585,9 @@ function limparBanco() {
   atualizarTabela(lancamentos);
   atualizarBoxes(lancamentos);
   graficoMensal(lancamentos);
-  graficoCategorias();
-  gerarAlertas();
-  resumoCategorias();
+  graficoCategorias(lancamentos);
+  gerarAlertas(lancamentos);
+  resumoCategorias(lancamentos);
   alert("Banco limpo e recarregado com os lançamentos atuais!");
 }
 
