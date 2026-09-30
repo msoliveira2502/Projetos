@@ -426,6 +426,8 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   console.log("Qtd registros:", lancamentosFiltrados.length);
   console.log(lancamentosFiltrados);
   atualizarTabela(lancamentosFiltrados);
+  graficocategorias(lancamentosFiltrados);
+
 
 });
 
@@ -492,6 +494,10 @@ $(document).ready(function(){
 
 
 function graficoCategorias(dados) {
+
+  if(chartCategorias){
+  chartCategorias.destroy();
+}
   const porCategoria = {};
   dados.forEach(l=>{
     porCategoria[l.categoria] = (porCategoria[l.categoria]||0)+l.valor;
@@ -641,14 +647,14 @@ console.log("Total de lançamentos:",lancamentos.length);
 // ----------------------
 
 dadosAtualDashboard = [...lancamentos];
-atualizarTabela(dadosAtualDashboard);
-atualizarBoxes(dadosAtualDashboard);
-graficoMensal(dadosAtualDashboard);
-graficoCategorias(dadosAtualDashboard);
-gerarAlertas(dadosAtualDashboard);
-resumoCategorias(dadosAtualDashboard);
-gerarRanking(dadosAtualDashboard);
-calcularProjecao(dadosAtualDashboard);
+atualizarTabela(lancamentos);
+atualizarBoxes(lancamentos);
+graficoMensal(lancamentos);
+graficoCategorias(lancamentos);
+gerarAlertas(lancamentos);
+resumoCategorias(lancamentos);
+gerarRanking(lancamentos);
+calcularProjecao(lancamentos);
 
 </script>
 </body>
