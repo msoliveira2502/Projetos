@@ -412,9 +412,6 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
     return (!inicio || anoMes >= inicio) && (!fim || anoMes <= fim);
   });
 
-  // Consolidação opcional
-  lancamentosFiltrados = prepararDados(lancamentosFiltrados);
-
   // Atualiza tabela, boxes e gráfico
   dadosAtualDashboard =[...lancamentosFiltrados];
   atualizarTabela(dadosAtualDashboard);
