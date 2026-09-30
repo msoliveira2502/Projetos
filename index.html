@@ -425,6 +425,10 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   resumoCategorias(dadosAtualDashboard);
   gerarRanking(dadosAtualDashboard);
   calcularProjecao(dadosAtualDashboard);
+  console.log("Filtro início:", inicio);
+  console.log("Filtro fim:", fim);
+  console.log("Qtd registros:", lancamentosFiltrados.length);
+  console.log(lancamentosFiltrados);
   atualizarTabela(lancamentosFiltrados);
 
 });
