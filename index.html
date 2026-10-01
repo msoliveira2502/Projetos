@@ -85,6 +85,7 @@
         <th>Categoria</th>
         <th>Descrição</th>
         <th>Valor</th>
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -252,6 +253,10 @@ let lancamentos = [
 let chartMensal = null;
 let chartCategorias = null;
 let dadosAtualDashboard = [];
+lancamentos.forEach((item,index)=>{
+   item.id = index + 1;
+});
+
 
 
 const CONFIG = {
@@ -523,13 +528,51 @@ function atualizarTabela(lancamentosFiltrados){
   lancamentosFiltrados.forEach(l=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${l.data}</td>
-      <td>${l.categoria}</td>
-      <td>${l.descricao}</td>
-      <td>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-    `;
-    tbody.appendChild(tr);
+     <td>${l.data}</td>
+     <td>${l.categoria}</td>
+     <td>${l.descricao}</td>
+     <td>${l.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+     <td>
+     <button onclick="editarLancamento(${l.id})">
+
+      ✏️
+     </button>
+     </td>
+
+     `;
+    tbody.appendChild(tr); 
   });
+}
+
+function editarLancamento(id){
+
+  const item = lancamentos.find(l =>
+    l.id === id
+);
+
+
+  if(!item) return;
+
+  const novaDescricao =
+    prompt("Descrição", item.descricao);
+
+  if(novaDescricao === null) return;
+
+  const novoValor =
+    prompt("Valor", item.valor);
+
+  if(novoValor === null) return;
+
+  item.descricao = novaDescricao;
+  item.valor = Number(novoValor);
+
+  salvarDados();
+
+  atualizarTabela(dadosAtualDashboard);
+  atualizarBoxes(dadosAtualDashboard);
+  graficoMensal(dadosAtualDashboard);
+  resumoCategorias(dadosAtualDashboard);
+  gerarRanking(dadosAtualDashboard);
 }
 
 
@@ -638,6 +681,7 @@ gerarAlertas(lancamentos);
 resumoCategorias(lancamentos);
 gerarRanking(lancamentos);
 calcularProjecao(lancamentos);
+
 
 </script>
 </body>
