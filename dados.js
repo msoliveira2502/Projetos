@@ -131,3 +131,8 @@ let lancamentos = [
   {data:"2026-10-30", descricao:"IPTU", categoria:"Impostos", valor:800.00},
   {data:"2026-10-30", descricao:"IPVA/Multas", categoria:"Impostos", valor:0.00},
 ];
+
+lancamentos.forEach((item,index)=>{
+  item.id = index + 1;
+});
+

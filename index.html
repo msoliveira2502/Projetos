@@ -397,25 +397,33 @@ function atualizarTabela(lancamentosFiltrados){
 
 function editarLancamento(id){
 
-  const item = lancamentos.find(l =>
-    l.id === id
-);
-
+  const item = lancamentos.find(
+    l => l.id === id
+  );
 
   if(!item) return;
 
-  const novaDescricao =
-    prompt("Descrição", item.descricao);
+  const novaDescricao = prompt(
+    "Descrição",
+    item.descricao
+  );
 
   if(novaDescricao === null) return;
 
-  const novoValor =
-    prompt("Valor", item.valor);
+  const novoValor = prompt(
+    "Valor",
+    item.valor
+  );
 
   if(novoValor === null) return;
 
   item.descricao = novaDescricao;
-  item.valor = Number(novoValor);
+  item.valor = parseFloat(
+    novoValor
+      .toString()
+      .replace(".", "")
+      .replace(",", ".")
+  );
 
   salvarDados();
 
@@ -423,8 +431,8 @@ function editarLancamento(id){
   atualizarBoxes(dadosAtualDashboard);
   graficoMensal(dadosAtualDashboard);
   resumoCategorias(dadosAtualDashboard);
-  gerarRanking(dadosAtualDashboard);
 }
+
 
 
 
