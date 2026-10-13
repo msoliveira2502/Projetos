@@ -127,25 +127,6 @@ function salvarDados() {
   localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
 }
 
-function calcularResumo() {
-  const rendaMensal = 19000; // orçamento mensal
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
-
-  const despesas = lancamentos
-    .filter(l => new Date(l.data).getMonth() === mesAtual)
-    .reduce((s,v)=>s+v.valor,0);
-
-  const saldo =
-  rendaPeriodo - despesas;
-
-
-  document.getElementById("caixaRenda").innerText = "Renda: " + rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaDespesas").innerText = "Despesas: " + despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  document.getElementById("caixaSaldo").innerText = "Saldo: " + saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-}
-
 function graficoMensal(lancamentosFiltrados){
 
   if(chartMensal){
@@ -188,21 +169,22 @@ function graficoMensal(lancamentosFiltrados){
 function atualizarBoxes(dados){
 
   const despesas =
-    dados.reduce(
-      (s,v)=>s+v.valor,
-      0
-    );
+  dados.reduce(
+    (s,v)=>s+v.valor,
+    0
+  );
 
-  const saldo = rendaPeriodo - despesas;
+const mesesSelecionados = new Set(
+  dados.map(l => l.data.substring(0,7))
+).size;
 
+const rendaPeriodo =
+  CONFIG.rendaMensal *
+  mesesSelecionados;
 
-  const mesesSelecionados = new Set(
-    dados.map(l => l.data.substring(0,7))
-  ).size;
+const saldo =
+  rendaPeriodo - despesas;
 
-  const rendaPeriodo =
-    CONFIG.rendaMensal *
-    mesesSelecionados;
 
   const comprometimento =
     (despesas / CONFIG.rendaMensal) * 100;
