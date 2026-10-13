@@ -136,7 +136,9 @@ function calcularResumo() {
     .filter(l => new Date(l.data).getMonth() === mesAtual)
     .reduce((s,v)=>s+v.valor,0);
 
-  const saldo = rendaMensal - despesas;
+  const saldo =
+  rendaPeriodo - despesas;
+
 
   document.getElementById("caixaRenda").innerText = "Renda: " + rendaMensal.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   document.getElementById("caixaDespesas").innerText = "Despesas: " + despesas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -191,8 +193,13 @@ function atualizarBoxes(dados){
       0
     );
 
-  const saldo =
-    CONFIG.rendaMensal - despesas;
+  const mesesSelecionados = new Set(
+    dados.map(l => l.data.substring(0,7))
+  ).size;
+
+  const rendaPeriodo =
+    CONFIG.rendaMensal *
+    mesesSelecionados;
 
   const comprometimento =
     (despesas / CONFIG.rendaMensal) * 100;
@@ -200,7 +207,7 @@ function atualizarBoxes(dados){
   document.getElementById("caixaRenda")
     .innerHTML =
     `<b>Renda</b><br>
-     ${CONFIG.rendaMensal.toLocaleString(
+     ${rendaPeriodo.toLocaleString(
        "pt-BR",
        {style:"currency",currency:"BRL"}
      )}`;
@@ -262,9 +269,6 @@ document.getElementById("aplicarFiltro").addEventListener("click", function(){
   console.log("Filtro fim:", fim);
   console.log("Qtd registros:", lancamentosFiltrados.length);
   console.log(lancamentosFiltrados);
-  atualizarTabela(lancamentosFiltrados);
-  graficocategorias(lancamentosFiltrados);
-
 
 });
 
