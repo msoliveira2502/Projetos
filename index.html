@@ -193,6 +193,9 @@ function atualizarBoxes(dados){
       0
     );
 
+  const saldo = rendaPeriodo - despesas;
+
+
   const mesesSelecionados = new Set(
     dados.map(l => l.data.substring(0,7))
   ).size;
