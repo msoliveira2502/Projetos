@@ -120,7 +120,7 @@ let lancamentos = [
   // Outubro
   {data:"2026-10-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3150.21},
   {data:"2026-10-10", descricao:"Cartão BB", categoria:"Cartões", valor:659.00},
-  {data:"2026-10-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:3261.08},
+  {data:"2026-10-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:4459.89},
   {data:"2026-10-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
   {data:"2026-10-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
   {data:"2026-10-22", descricao:"Cartão Porto", categoria:"Cartões", valor:321.00},
