@@ -118,7 +118,7 @@ let lancamentos = [
   {data:"2026-09-30", descricao:"IPVA/Multas", categoria:"Impostos", valor:0.00},
 
   // Outubro
-  {data:"2026-10-06", descricao:"Cartão Nu", categoria:"Cartões", valor:2174.00},
+  {data:"2026-10-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3150.21},
   {data:"2026-10-10", descricao:"Cartão BB", categoria:"Cartões", valor:659.00},
   {data:"2026-10-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:3261.08},
   {data:"2026-10-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
