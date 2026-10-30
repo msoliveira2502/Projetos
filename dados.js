@@ -119,15 +119,15 @@ let lancamentos = [
 
   // Outubro
   {data:"2026-10-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3403.86},
-  {data:"2026-10-10", descricao:"Cartão BB", categoria:"Cartões", valor:1858.36},
+  {data:"2026-10-10", descricao:"Cartão BB", categoria:"Cartões", valor:2025.16},
   {data:"2026-10-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:4752.56},
   {data:"2026-10-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
   {data:"2026-10-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
   {data:"2026-10-22", descricao:"Cartão Porto", categoria:"Cartões", valor:321.00},
   {data:"2026-10-25", descricao:"Internet", categoria:"Serviços", valor:110.00},
-  {data:"2026-10-26", descricao:"Luz", categoria:"Serviços", valor:250.00},
+  {data:"2026-10-26", descricao:"Luz", categoria:"Serviços", valor:332.67},
   {data:"2026-10-27", descricao:"Vivo+TIM", categoria:"Serviços", valor:130.00},
-  {data:"2026-10-28", descricao:"Água", categoria:"Serviços", valor:250.00},
+  {data:"2026-10-28", descricao:"Água", categoria:"Serviços", valor:132.02},
   {data:"2026-10-30", descricao:"IPTU", categoria:"Impostos", valor:0.00},
   {data:"2026-10-30", descricao:"IPVA/Multas", categoria:"Impostos", valor:0.00},
 ];
