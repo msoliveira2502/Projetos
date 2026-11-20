@@ -133,9 +133,9 @@ let lancamentos = [
   {data:"2026-10-30", descricao:"Saúde", categoria:"Serviços", valor:500.00},
 
    // Novembro
-  {data:"2026-11-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3069.81},
-  {data:"2026-11-10", descricao:"Cartão BB", categoria:"Cartões", valor:285.46},
-  {data:"2026-11-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:2999.42},
+  {data:"2026-11-06", descricao:"Cartão Nu", categoria:"Cartões", valor:3.375.45},
+  {data:"2026-11-10", descricao:"Cartão BB", categoria:"Cartões", valor:418.61},
+  {data:"2026-11-12", descricao:"Cartão Bradesco", categoria:"Cartões", valor:5.525.35},
   {data:"2026-11-15", descricao:"Escola Miguel", categoria:"Educação", valor:1112.00},
   {data:"2026-11-20", descricao:"Financiamento Imobiliário", categoria:"Casa/Transporte", valor:5275.00},
   {data:"2026-11-22", descricao:"Cartão Porto", categoria:"Cartões", valor:321.00},
