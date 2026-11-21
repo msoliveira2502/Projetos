@@ -664,10 +664,14 @@ document.getElementById("btnCancelarEdicao").addEventListener("click", cancelarE
 
 function requisicaoGitHub(metodo, url, token, corpoObj) {
   return new Promise(function (resolve, reject) {
+    if (!token || token.length < 15) {
+      reject(new Error("Token vazio ou curto demais. Clique em 🔑 Token e cole novamente."));
+      return;
+    }
+
     const xhr = new XMLHttpRequest();
     xhr.open(metodo, url, true);
     xhr.setRequestHeader("Authorization", "Bearer " + token);
-    xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
     if (corpoObj) {
       xhr.setRequestHeader("Content-Type", "application/json");
     }
@@ -686,12 +690,13 @@ function requisicaoGitHub(metodo, url, token, corpoObj) {
     };
 
     xhr.onerror = function () {
-      reject(new Error("Bloqueio de rede no navegador (verifique se o Token está válido ou tente no Safari)."));
+      reject(new Error("O iPad bloqueou o acesso a ://github.com. Verifique: 1) Se há Content-Security-Policy no <head>; 2) Se o Wi-Fi/VPN/iCloud Private Relay está bloqueando ://github.com."));
     };
 
     xhr.send(corpoObj ? JSON.stringify(corpoObj) : null);
   });
 }
+
 
 document.getElementById("btnConfigToken").addEventListener("click", function () {
   const atual = localStorage.getItem("github_token") || "";
