@@ -95,7 +95,10 @@
 </div>
 
 
-<script src="dados.js"></script>
+<script>
+  document.write('<script src="dados.js?v=' + Date.now() + '"><\/script>');
+</script>
+
 
 <script>
 let chartMensal = null;
