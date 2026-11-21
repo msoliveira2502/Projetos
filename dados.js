@@ -122,7 +122,19 @@ let lancamentos = [
   {"data":"2026-11-27","descricao":"Vivo+TIM","categoria":"Serviços","valor":130},
   {"data":"2026-11-28","descricao":"Água","categoria":"Serviços","valor":132.02},
   {"data":"2026-11-30","descricao":"IPTU","categoria":"Impostos","valor":0},
-  {"data":"2026-11-30","descricao":"IPVA/Multas","categoria":"Impostos","valor":0}
+  {"data":"2026-11-30","descricao":"IPVA/Multas","categoria":"Impostos","valor":0},
+  {"data":"2026-12-06","descricao":"Cartão Nu","categoria":"Cartões","valor":1465.09},
+  {"data":"2026-12-10","descricao":"Cartão BB","categoria":"Cartões","valor":265.46},
+  {"data":"2026-12-12","descricao":"Cartão Bradesco","categoria":"Cartões","valor":1529.73},
+  {"data":"2026-12-15","descricao":"Escola Miguel","categoria":"Educação","valor":1112},
+  {"data":"2026-12-20","descricao":"Financiamento Imobiliário","categoria":"Casa/Transporte","valor":5275},
+  {"data":"2026-12-22","descricao":"Cartão Porto","categoria":"Cartões","valor":321},
+  {"data":"2026-12-25","descricao":"Internet","categoria":"Serviços","valor":110},
+  {"data":"2026-12-26","descricao":"Luz","categoria":"Serviços","valor":332.67},
+  {"data":"2026-12-27","descricao":"Vivo+TIM","categoria":"Serviços","valor":130},
+  {"data":"2026-12-28","descricao":"Água","categoria":"Serviços","valor":132.02},
+  {"data":"2026-12-30","descricao":"IPTU","categoria":"Impostos","valor":0},
+  {"data":"2026-12-30","descricao":"IPVA/Multas","categoria":"Impostos","valor":0}
 ];
 
 lancamentos.forEach((item, index) => {
