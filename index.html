@@ -357,22 +357,7 @@
            .resumo, #filtros, painel Novo Lançamento, #alertas, 
            gráficos, #tabelaCategorias e #containerTabelaLancamentos -->
 
-    </div> <!-- Fim da abaOrcamento -->
-
-    <!-- ABA 2: OBJETIVOS (Fica oculta até clicar no menu) -->
-    <div id="abaObjetivos" style="display: none;">
-      
-      <!-- COLE AQUI DENTRO A <div id="secaoObjetivos">...</div> QUE JÁ CRIAMOS -->
-
-    </div> <!-- Fim da abaObjetivos -->
-
-  </main>
-
-
-
-  <h1>Meu Orçamento Pessoal</h1>
-
-  <div class="resumo">
+      <div class="resumo">
     <div class="caixa renda" id="caixaRenda"></div>
     <div class="caixa despesas" id="caixaDespesas"></div>
     <div class="caixa saldo" id="caixaSaldo"></div>
@@ -440,7 +425,52 @@
   <canvas id="graficoMensal" width="600" height="300"></canvas>
   <canvas id="graficoCategorias" width="600" height="300"></canvas>
 
-  <!-- SEÇÃO: MÓDULO DE OBJETIVOS E INTELIGÊNCIA FINANCEIRA -->
+  
+
+
+  <h2>Resumo por Categoria</h2>
+  <table id="tabelaCategorias">
+    <thead>
+      <tr>
+        <th>Categoria</th>
+        <th>Total</th>
+        <th>%</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div style="text-align:right; margin-top: 28px;">
+    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais
+    </label>
+  </div>
+
+  <div id="containerTabelaLancamentos" style="margin-top:12px;">
+    <table id="tabelaLancamentos">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Linhas preenchidas via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+    </div> <!-- Fim da abaOrcamento -->
+
+    <!-- ABA 2: OBJETIVOS (Fica oculta até clicar no menu) -->
+    <div id="abaObjetivos" style="display: none;">
+      
+      <!-- COLE AQUI DENTRO A <div id="secaoObjetivos">...</div> QUE JÁ CRIAMOS -->
+
+      <!-- SEÇÃO: MÓDULO DE OBJETIVOS E INTELIGÊNCIA FINANCEIRA -->
   <div id="secaoObjetivos" style="margin: 36px 0; padding: 24px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px;">
     <div>
@@ -502,41 +532,15 @@
   <div id="listaObjetivos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;"></div>
   </div>
 
+    </div> <!-- Fim da abaObjetivos -->
 
-  <h2>Resumo por Categoria</h2>
-  <table id="tabelaCategorias">
-    <thead>
-      <tr>
-        <th>Categoria</th>
-        <th>Total</th>
-        <th>%</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  </main>
 
-  <div style="text-align:right; margin-top: 28px;">
-    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais
-    </label>
-  </div>
 
-  <div id="containerTabelaLancamentos" style="margin-top:12px;">
-    <table id="tabelaLancamentos">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Categoria</th>
-          <th>Descrição</th>
-          <th>Valor</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Linhas preenchidas via JavaScript -->
-      </tbody>
-    </table>
-  </div>
+
+  <h1>Meu Orçamento Pessoal</h1>
+
+  
 
   <script>
     document.write('<script src="dados.js?v=' + Date.now() + '"><\/script>');
@@ -1198,6 +1202,28 @@ function excluirObjetivo(id) {
   renderizarObjetivos();
 }
 }
+
+function alternarAba(aba) {
+  const divOrcamento = document.getElementById("abaOrcamento");
+  const divObjetivos = document.getElementById("abaObjetivos");
+  const btnOrcamento = document.getElementById("navOrcamento");
+  const btnObjetivos = document.getElementById("navObjetivos");
+
+  if (aba === "orcamento") {
+    divOrcamento.style.display = "block";
+    divObjetivos.style.display = "none";
+    btnOrcamento.classList.add("ativo");
+    btnObjetivos.classList.remove("ativo");
+    recarregarDashboard();
+  } else {
+    divOrcamento.style.display = "none";
+    divObjetivos.style.display = "block";
+    btnOrcamento.classList.remove("ativo");
+    btnObjetivos.classList.add("ativo");
+    renderizarObjetivos();
+  }
+}
+
 
 // ----------------------
 // Inicialização
