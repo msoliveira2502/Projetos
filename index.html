@@ -14,20 +14,166 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    h1 { text-align: center; }
-    .resumo { display:flex; gap:20px; justify-content:center; margin:20px 0; }
-    .caixa { flex:1; padding:20px; border-radius:8px; color:#fff; text-align:center; font-weight:bold; }
-    .renda { background:#4caf50; }
-    .despesas { background:#f44336; }
-    .saldo { background:#2196f3; }
-    canvas { margin:20px auto; display:block; }
-    .consulta, .upload { margin:30px auto; width:80%; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
-    th { background:#eee; }
-  </style>
+<style>
+  @import url('https://googleapis.com');
+
+  :root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    margin: 0 auto;
+    padding: 32px 24px;
+    max-width: 1100px;
+    line-height: 1.5;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: 28px;
+    color: var(--text-main);
+  }
+
+  /* Grid responsivo para os cards de resumo */
+  .resumo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  /* Estilo moderno estilo Fintech para os cards */
+  .caixa {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    border-top: 4px solid #94a3b8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .caixa:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Cores de destaque apenas na borda superior */
+  .renda { border-top-color: #10b981 !important; }
+  .despesas { border-top-color: #ef4444 !important; }
+  .saldo { border-top-color: #3b82f6 !important; }
+  .caixa:nth-child(4) { border-top-color: #f59e0b !important; } /* Comprometimento */
+  .caixa:nth-child(5) { border-top-color: #6366f1 !important; } /* Saúde Financeira */
+
+  /* Estilização dos Filtros e Botões */
+  select, input[type="date"], input[type="month"], input[type="file"] {
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #ffffff;
+    color: var(--text-main);
+    outline: none;
+  }
+
+  select:focus, input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    background-color: #0f172a;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  button:hover {
+    background-color: #334155;
+  }
+
+  /* Container dos gráficos */
+  canvas {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin: 24px auto;
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Áreas de consulta, upload e tabelas */
+  .consulta, .upload {
+    background: var(--bg-card);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin: 24px auto;
+    width: 100%;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  th, td {
+    border-bottom: 1px solid var(--border-color);
+    border-left: none;
+    border-right: none;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  tr:hover td {
+    background-color: #f8fafc;
+  }
+</style>
+
+  
 </head>
 <body>
   <h1>Meu Orçamento Pessoal</h1>
