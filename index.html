@@ -423,6 +423,7 @@ function graficoMensal(lancamentosFiltrados) {
       datasets: [
         { label: "Despesas Mensais", data: valores, backgroundColor: cores, borderRadius: 6, maxBarThickness: 60 },
         { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#0f172a", borderWidth: 2, borderDash:, pointRadius: 0 }
+
       ]
     },
     options: { plugins: { title: { display: true, text: "Acompanhamento Mensal com Limite" } } }
@@ -683,7 +684,7 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
   btn.innerText = "⏳ Salvando...";
 
   const usuario = "msoliveira2502";
-  const repositorio = "msoliveira2502.github.io";
+  const repositorio = "Projetos";
   const caminhoArquivo = "dados.js";
   const urlApi = "https://github.com" + usuario + "/" + repositorio + "/contents/" + caminhoArquivo;
 
