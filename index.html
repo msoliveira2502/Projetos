@@ -329,8 +329,12 @@
     }
   }
 
-
 </style>
+
+<script src="https://cloudflare.com"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cloudflare.com";
+</script>
 
 </head>
 
@@ -1626,7 +1630,187 @@ document.getElementById("btnConfirmarCopia").addEventListener("click", function 
   alert("Lançamentos do novo mês adicionados! Clique em '☁️ Salvar no GitHub' para gravar na nuvem.");
 });
 
+// ----------------------
+// Importador de Fatura PDF + Micro Categorias
+// ----------------------
 
+let itensExtraidosPdf = [];
+
+const MICRO_CATEGORIAS = Array.of(
+  "Alimentação/Delivery",
+  "Supermercado",
+  "Combustível/Auto",
+  "Farmácia/Saúde",
+  "Compras Online/Vestuário",
+  "Assinaturas/Lazer",
+  "Outros Cartão"
+);
+
+function classificarMicroGrupo(descricao) {
+  const txt = descricao.toUpperCase();
+  if (/IFOOD|UBER EATS|RAPPI|RESTAURANTE|PADARIA|LANCHE|PIZZA|BURGER|CAFE|AÇAÍ|ACAI|CHURRASC|SUSHI/.test(txt)) {
+    return "Alimentação/Delivery";
+  }
+  if (/SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA|PANIFIC/.test(txt)) {
+    return "Supermercado";
+  }
+  if (/POSTO|COMBUST|IPIRANGA|SHELL|BR PETROBRAS|AUTO|ESTACIONAMENTO|ESTAR|PEDAGIO|SEM PARAR|VELOE/.test(txt)) {
+    return "Combustível/Auto";
+  }
+  if (/FARMACIA|DROGA|NISSEI|PANVEL|RAIA|SAUDE|CLINICA|HOSPITAL|LAB|ODONTO|EXAME/.test(txt)) {
+    return "Farmácia/Saúde";
+  }
+  if (/MERCADO LIVRE|MERCADOLIVRE|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO/.test(txt)) {
+    return "Compras Online/Vestuário";
+  }
+  if (/NETFLIX|SPOTIFY|APPLE|GOOGLE|PRIME|DISNEY|HBO|CINEMA|INGRESSO|SMART FIT|TOTALPASS/.test(txt)) {
+    return "Assinaturas/Lazer";
+  }
+  return "Outros Cartão";
+}
+
+function abrirPainelPdf() {
+  const painel = document.getElementById("painelImportarPdf");
+  if (!painel) return;
+  painel.style.display = (painel.style.display === "none" || painel.style.display === "") ? "block" : "none";
+  if (painel.style.display === "block") {
+    painel.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+document.getElementById("btnFecharPdf").addEventListener("click", function () {
+  document.getElementById("painelImportarPdf").style.display = "none";
+  document.getElementById("areaRevisaoPdf").style.display = "none";
+  itensExtraidosPdf = [];
+});
+
+document.getElementById("btnProcessarPdf").addEventListener("click", async function () {
+  const arquivo = document.getElementById("inputArquivoPdf").files.item(0);
+  const mesFatura = document.getElementById("pdfMesFatura").value;
+  const origem = document.getElementById("pdfOrigemCartao").value;
+
+  if (!arquivo) return alert("Selecione o arquivo PDF da fatura primeiro.");
+  if (!mesFatura) return alert("Informe o Mês da Fatura (ex: 2026-11).");
+
+  const btn = this;
+  btn.disabled = true;
+  btn.innerText = "⏳ Lendo PDF...";
+
+  try {
+    const arrayBuffer = await arquivo.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let textoCompleto = "";
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const linhasPagina = content.items.map(i => i.str).join(" ");
+      textoCompleto += "\n" + linhasPagina;
+    }
+
+    const regexTransacao = /(\d{2}\/\d{2})(?:\/\d{2,4})?\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})/g;
+    let match;
+    itensExtraidosPdf = [];
+
+    while ((match = regexTransacao.exec(textoCompleto)) !== null) {
+      const diaMes = match.at(1);
+      const desc = match.at(2).trim();
+      const valorStr = match.at(3).replace(/\./g, "").replace(",", ".");
+      const valor = parseFloat(valorStr);
+
+      if (/PAGAMENTO|SALDO ANTERIOR|TOTAL DA FATURA|CREDITO EM CONTA|ENCARGOS/.test(desc.toUpperCase())) continue;
+      if (isNaN(valor) || valor <= 0) continue;
+
+      const dia = diaMes.split("/").at(0);
+      itensExtraidosPdf.push({
+        data: mesFatura + "-" + dia,
+        descricao: desc,
+        categoria: "Cartões",
+        subcategoria: classificarMicroGrupo(desc),
+        origem: origem,
+        valor: valor
+      });
+    }
+
+    if (itensExtraidosPdf.length === 0) {
+      alert("Não foi possível identificar linhas automáticas neste PDF. Verifique se o PDF permite selecionar texto.");
+    } else {
+      document.getElementById("areaRevisaoPdf").style.display = "block";
+      renderizarTabelaPdf();
+    }
+  } catch (err) {
+    alert("Erro ao ler PDF: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "🔍 Ler Fatura";
+  }
+});
+
+function renderizarTabelaPdf() {
+  const tbody = document.getElementById("corpoTabelaPdf");
+  tbody.innerHTML = "";
+  let soma = 0;
+
+  itensExtraidosPdf.forEach((item, idx) => {
+    soma += item.valor;
+    let opcoesHtml = "";
+    MICRO_CATEGORIAS.forEach(mc => {
+      const sel = mc === item.subcategoria ? "selected" : "";
+      opcoesHtml += '<option value="' + mc + '" ' + sel + '>' + mc + '</option>';
+    });
+
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td style="padding:6px 8px; font-size:0.82rem;">' + item.data + '</td>' +
+      '<td style="padding:6px 8px; font-size:0.82rem;">' + item.descricao + '</td>' +
+      '<td style="padding:6px 8px;">' +
+        '<select onchange="itensExtraidosPdf.at(' + idx + ').subcategoria = this.value" style="padding:4px 6px; font-size:0.8rem;">' +
+          opcoesHtml +
+        '</select>' +
+      '</td>' +
+      '<td style="padding:6px 8px; text-align:right; font-size:0.82rem;">' + item.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + '</td>' +
+      '<td style="padding:6px 8px; text-align:center;">' +
+        '<button type="button" onclick="itensExtraidosPdf.splice(' + idx + ', 1); renderizarTabelaPdf();" style="padding:3px 7px; background:#fee2e2; color:#b91c1c; font-size:0.75rem;">🗑️</button>' +
+      '</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("resumoTotalPdf").innerText =
+    "Total (" + itensExtraidosPdf.length + " itens): " + soma.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+document.getElementById("btnConfirmarPdf").addEventListener("click", function () {
+  if (itensExtraidosPdf.length === 0) return;
+
+  const substituir = document.getElementById("chkSubstituirCheio").checked;
+  const origem = document.getElementById("pdfOrigemCartao").value;
+  const mesFatura = document.getElementById("pdfMesFatura").value;
+
+  if (substituir) {
+    lancamentos = lancamentos.filter(l => !(l.data.startsWith(mesFatura) && l.descricao.toLowerCase() === origem.toLowerCase()));
+  }
+
+  itensExtraidosPdf.forEach(item => {
+    lancamentos.push({
+      data: item.data,
+      descricao: item.descricao + " (" + item.origem + ")",
+      categoria: "Cartões",
+      subcategoria: item.subcategoria,
+      valor: item.valor
+    });
+  });
+
+  document.getElementById("painelImportarPdf").style.display = "none";
+  document.getElementById("areaRevisaoPdf").style.display = "none";
+  itensExtraidosPdf = [];
+
+  salvarDados();
+  recarregarDashboard();
+  renderizarAbaCartoes();
+  alert("Fatura detalhada importada com sucesso! Clique em '☁️ Salvar no GitHub' para gravar na nuvem.");
+});
+
+  
 // ----------------------
 // Inicialização
 // ----------------------
