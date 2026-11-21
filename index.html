@@ -659,17 +659,48 @@ function cancelarEdicao() {
 document.getElementById("btnCancelarEdicao").addEventListener("click", cancelarEdicao);
 
 // ----------------------
-// Sincronização com GitHub API
+// Sincronização com GitHub API (Compatível com iPad/iOS)
 // ----------------------
+
+function requisicaoGitHub(metodo, url, token, corpoObj) {
+  return new Promise(function (resolve, reject) {
+    const xhr = new XMLHttpRequest();
+    xhr.open(metodo, url, true);
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+    xhr.setRequestHeader("Accept", "application/vnd.github.v3+json");
+    if (corpoObj) {
+      xhr.setRequestHeader("Content-Type", "application/json");
+    }
+
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        let msg = "HTTP " + xhr.status;
+        try {
+          const errJson = JSON.parse(xhr.responseText);
+          if (errJson.message) msg += " - " + errJson.message;
+        } catch (e) {}
+        reject(new Error(msg));
+      }
+    };
+
+    xhr.onerror = function () {
+      reject(new Error("Bloqueio de rede no navegador (verifique se o Token está válido ou tente no Safari)."));
+    };
+
+    xhr.send(corpoObj ? JSON.stringify(corpoObj) : null);
+  });
+}
 
 document.getElementById("btnConfigToken").addEventListener("click", function () {
   const atual = localStorage.getItem("github_token") || "";
   const novo = prompt("Cole seu Personal Access Token do GitHub (deixe vazio para apagar):", atual);
   if (novo !== null) {
-    const limpo = novo.replace(/\s+/g, "");
+    const limpo = novo.replace(/[^a-zA-Z0-9_]/g, "");
     if (limpo) {
       localStorage.setItem("github_token", limpo);
-      alert("Token salvo com sucesso!");
+      alert("Token salvo (" + limpo.substring(0, 12) + "...)");
     } else {
       localStorage.removeItem("github_token");
       alert("Token removido!");
@@ -684,19 +715,7 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
     if (!token) return;
   }
 
-  // Remove qualquer espaço ou quebra de linha que causa "Load failed" no Safari
-  token = token.replace(/\s+/g, "");
-    // Limpa qualquer caractere que não seja letra, número ou underline (padrão dos tokens do GitHub)
   token = token.replace(/[^a-zA-Z0-9_]/g, "");
-  localStorage.setItem("github_token", token);
-
-  if (!token.startsWith("github_pat_") && !token.startsWith("ghp_")) {
-    alert("Atenção: O token colado não parece válido (" + token.substring(0, 10) + "...). Clique em 🔑 Token e cole novamente.");
-    btn.disabled = false;
-    btn.innerText = "☁️ Salvar no GitHub";
-    return;
-  }
-
   localStorage.setItem("github_token", token);
 
   const btn = this;
@@ -709,24 +728,10 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
   const urlApi = "https://github.com" + usuario + "/" + repositorio + "/contents/" + caminhoArquivo;
 
   try {
-    // 1. Busca o SHA atual do arquivo no branch main
-    const resGet = await fetch(urlApi + "?ref=main", {
-      method: "GET",
-      headers: {
-        "Authorization": "token " + token,
-        "Accept": "application/vnd.github+json"
-      }
-    });
+    // 1. Busca o SHA atual do arquivo
+    const infoArquivo = await requisicaoGitHub("GET", urlApi + "?ref=main&t=" + Date.now(), token, null);
 
-    if (!resGet.ok) {
-      const erroDetalhe = await resGet.json().catch(() => ({}));
-      if (resGet.status === 401) localStorage.removeItem("github_token");
-      throw new Error("GitHub recusou acesso (" + resGet.status + "): " + (erroDetalhe.message || "Verifique o Token"));
-    }
-
-    const infoArquivo = await resGet.json();
-
-    // 2. Monta o novo conteúdo mantendo a estrutura exata do seu dados.js
+    // 2. Monta o novo conteúdo do dados.js
     const dadosLimpos = lancamentos.map(({ data, descricao, categoria, valor }) => ({
       data,
       descricao,
@@ -739,29 +744,19 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
     const conteudoBase64 = btoa(unescape(encodeURIComponent(conteudoFinal)));
 
     // 3. Envia a atualização para o GitHub
-    const resPut = await fetch(urlApi, {
-      method: "PUT",
-      headers: {
-        "Authorization": "token " + token,
-        "Accept": "application/vnd.github+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: "Atualização via portal de orçamento",
-        content: conteudoBase64,
-        sha: infoArquivo.sha,
-        branch: "main"
-      })
+    await requisicaoGitHub("PUT", urlApi, token, {
+      message: "Atualização via portal de orçamento",
+      content: conteudoBase64,
+      sha: infoArquivo.sha,
+      branch: "main"
     });
-
-    if (!resPut.ok) {
-      const erroPut = await resPut.json().catch(() => ({}));
-      throw new Error("Erro ao gravar (" + resPut.status + "): " + (erroPut.message || "Falha no PUT"));
-    }
 
     localStorage.removeItem("lancamentos_pendentes");
     alert("Salvo no GitHub com sucesso! O site atualizará em cerca de 30 segundos.");
   } catch (erro) {
+    if (erro.message.includes("401")) {
+      localStorage.removeItem("github_token");
+    }
     alert("Falha: " + erro.message);
   } finally {
     btn.disabled = false;
