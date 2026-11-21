@@ -238,9 +238,138 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
+
+    /* Layout Principal com Menu Lateral */
+  body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-page);
+  }
+
+  .sidebar {
+    width: 240px;
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-titulo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    padding: 0 12px 20px;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 12px;
+  }
+
+  .menu-btn {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: #94a3b8;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+  }
+
+  .menu-btn:hover {
+    background-color: #1e293b;
+    color: #ffffff;
+  }
+
+  .menu-btn.ativo {
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .conteudo-principal {
+    flex: 1;
+    padding: 28px 24px;
+    max-width: 1150px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Responsividade para telas muito estreitas (celular em pé) */
+  @media (max-width: 720px) {
+    body {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .sidebar-titulo {
+      border-bottom: none;
+      padding: 0;
+      margin: 0;
+      font-size: 1rem;
+    }
+    .menu-btn {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+  }
+
+
 </style>
+
 </head>
+
 <body>
+  <!-- MENU LATERAL ESQUERDO -->
+  <aside class="sidebar">
+    <div class="sidebar-titulo">💰 Meu Portal</div>
+    <button type="button" class="menu-btn ativo" id="navOrcamento" onclick="alternarAba('orcamento')">
+      📊 Orçamento Mensal
+    </button>
+    <button type="button" class="menu-btn" id="navObjetivos" onclick="alternarAba('objetivos')">
+      🎯 Objetivos
+    </button>
+  </aside>
+
+  <!-- ÁREA DIREITA (PORTAL) -->
+  <main class="conteudo-principal">
+
+    <!-- ABA 1: ORÇAMENTO MENSAL -->
+    <div id="abaOrcamento">
+      <h1>Meu Orçamento Pessoal</h1>
+      
+      <!-- MANTENHA AQUI TODO O SEU CONTEÚDO ATUAL:
+           .resumo, #filtros, painel Novo Lançamento, #alertas, 
+           gráficos, #tabelaCategorias e #containerTabelaLancamentos -->
+
+    </div> <!-- Fim da abaOrcamento -->
+
+    <!-- ABA 2: OBJETIVOS (Fica oculta até clicar no menu) -->
+    <div id="abaObjetivos" style="display: none;">
+      
+      <!-- COLE AQUI DENTRO A <div id="secaoObjetivos">...</div> QUE JÁ CRIAMOS -->
+
+    </div> <!-- Fim da abaObjetivos -->
+
+  </main>
+
+
+
   <h1>Meu Orçamento Pessoal</h1>
 
   <div class="resumo">
