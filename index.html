@@ -140,8 +140,7 @@ function graficoMensal(lancamentosFiltrados) {
   const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const porMes = {};
 
-  lancamentosFiltrados.forEach(l => {
-    // Evita problema de fuso horário ao ler YYYY-MM-DD
+    lancamentosFiltrados.forEach(l => {
     const partes = l.data.split("-");
     const mesIndex = parseInt(partes[1], 10) - 1;
     porMes[mesIndex] = (porMes[mesIndex] || 0) + l.valor;
