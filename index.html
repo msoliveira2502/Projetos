@@ -686,6 +686,17 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
 
   // Remove qualquer espaço ou quebra de linha que causa "Load failed" no Safari
   token = token.replace(/\s+/g, "");
+    // Limpa qualquer caractere que não seja letra, número ou underline (padrão dos tokens do GitHub)
+  token = token.replace(/[^a-zA-Z0-9_]/g, "");
+  localStorage.setItem("github_token", token);
+
+  if (!token.startsWith("github_pat_") && !token.startsWith("ghp_")) {
+    alert("Atenção: O token colado não parece válido (" + token.substring(0, 10) + "...). Clique em 🔑 Token e cole novamente.");
+    btn.disabled = false;
+    btn.innerText = "☁️ Salvar no GitHub";
+    return;
+  }
+
   localStorage.setItem("github_token", token);
 
   const btn = this;
