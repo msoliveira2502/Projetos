@@ -422,13 +422,13 @@ function graficoMensal(lancamentosFiltrados) {
       labels: labels,
       datasets: [
         { label: "Despesas Mensais", data: valores, backgroundColor: cores, borderRadius: 6, maxBarThickness: 60 },
-        { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#0f172a", borderWidth: 2, borderDash:, pointRadius: 0 }
-
+        { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#0f172a", borderWidth: 2, pointRadius: 0 }
       ]
     },
     options: { plugins: { title: { display: true, text: "Acompanhamento Mensal com Limite" } } }
   });
 }
+
 
 function atualizarBoxes(dados) {
   const despesas = dados.reduce((s, v) => s + v.valor, 0);
