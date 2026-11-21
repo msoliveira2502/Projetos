@@ -84,20 +84,19 @@
   }
 
   /* Destaca os valores em R$ ou % inseridos pelo JS dentro dos cards */
-  .caixa strong, .caixa b, .caixa span {
+  
+    .caixa b {
     display: block;
-    margin-top: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: -14px;
+  }
+  .caixa {
     font-size: 1.45rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--text-main) !important;
   }
-
-  /* Cores de destaque apenas na borda superior */
-  .renda { border-top-color: #10b981 !important; }
-  .despesas { border-top-color: #ef4444 !important; }
-  .saldo { border-top-color: #3b82f6 !important; }
-  #caixaComprometimento { border-top-color: #f59e0b !important; }
-  #caixaSaude { border-top-color: #6366f1 !important; }
 
   /* Barra de Filtros */
   #filtros {
@@ -260,6 +259,53 @@
     <button id="aplicarFiltro">Aplicar Filtro</button>
   </div>
 
+  <!-- Painel para Inserir / Editar Lançamentos -->
+<div style="background:#ffffff; padding:20px; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin:20px 0;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+    <h3 id="tituloForm" style="margin:0; font-size:1.05rem; color:#0f172a;">Novo Lançamento</h3>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button type="button" id="btnSincronizarGitHub" style="background:#2563eb;">☁️ Salvar no GitHub</button>
+      <button type="button" id="btnConfigToken" style="background:#64748b;" title="Configurar Token">🔑 Token</button>
+    </div>
+  </div>
+
+  <form id="formLancamento" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; align-items:end;">
+    <input type="hidden" id="editId" value="">
+
+    <div>
+      <label style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:4px;">Data</label>
+      <input type="date" id="inputData" required style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit;">
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:4px;">Categoria</label>
+      <select id="inputCategoria" required style="width:100%;">
+        <option value="Cartões">Cartões</option>
+        <option value="Casa/Transporte">Casa/Transporte</option>
+        <option value="Educação">Educação</option>
+        <option value="Serviços">Serviços</option>
+        <option value="Impostos">Impostos</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:4px;">Descrição</label>
+      <input type="text" id="inputDescricao" placeholder="Ex: Cartão Nu, Luz..." required style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit;">
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.8rem; color:#64748b; margin-bottom:4px;">Valor (R$)</label>
+      <input type="number" step="0.01" id="inputValor" placeholder="0.00" required style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit;">
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button type="submit" id="btnSalvar" style="flex:1;">Adicionar</button>
+      <button type="button" id="btnCancelarEdicao" style="display:none; background:#ef4444;">Cancelar</button>
+    </div>
+  </form>
+</div>
+
+
   <div id="alertas"></div> 
 
   <canvas id="graficoMensal" width="600" height="300"></canvas>
@@ -309,14 +355,23 @@ let chartMensal = null;
 let chartCategorias = null;
 let dadosAtualDashboard = [];
 
-// Garante que cada lançamento tenha um ID
-if (typeof lancamentos !== "undefined") {
-  lancamentos.forEach((item, index) => {
-    item.id = index + 1;
-  });
-} else {
-  console.error("ERRO: A variável 'lancamentos' não foi encontrada no dados.js!");
+// Se houver alterações locais pendentes (enquanto o GitHub Pages publica), usa elas
+const cachePendente = localStorage.getItem("lancamentos_pendentes");
+if (cachePendente) {
+  lancamentos = JSON.parse(cachePendente);
 }
+
+// Garante que cada lançamento tenha um ID único
+function reindexarIds() {
+  if (typeof lancamentos !== "undefined") {
+    lancamentos.forEach((item, index) => {
+      item.id = index + 1;
+    });
+  } else {
+    console.error("ERRO: A variável 'lancamentos' não foi encontrada no dados.js!");
+  }
+}
+reindexarIds();
 
 const CONFIG = {
   rendaMensal: 19000
@@ -329,25 +384,22 @@ const limites = {
 };
 
 // ----------------------
-// Funções principais
+// Gráficos e Cálculos
 // ----------------------
 
-function inicializarCache() {
-  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
-}
-
 function salvarDados() {
-  localStorage.setItem("lancamentos", JSON.stringify(lancamentos));
+  lancamentos.sort((a, b) => a.data.localeCompare(b.data));
+  reindexarIds();
+  localStorage.setItem("lancamentos_pendentes", JSON.stringify(lancamentos));
 }
 
 function graficoMensal(lancamentosFiltrados) {
-  if (chartMensal) {
-    chartMensal.destroy();
-  }
+  if (chartMensal) chartMensal.destroy();
+
   const mesesNomes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const porMes = {};
 
-    lancamentosFiltrados.forEach(l => {
+  lancamentosFiltrados.forEach(l => {
     const partes = l.data.split("-");
     const mesIndex = parseInt(partes[1], 10) - 1;
     porMes[mesIndex] = (porMes[mesIndex] || 0) + l.valor;
@@ -356,12 +408,12 @@ function graficoMensal(lancamentosFiltrados) {
   const labels = Object.keys(porMes).map(i => mesesNomes[i]);
   const valores = Object.values(porMes);
 
-  const limite = 19000;
+  const limite = CONFIG.rendaMensal;
   const cores = valores.map(v => {
     const perc = (v / limite) * 100;
-    if (perc <= 90) return "#4caf50";
-    if (perc <= 100) return "#ffeb3b";
-    return "#f44336";
+    if (perc <= 90) return "#10b981";
+    if (perc <= 100) return "#f59e0b";
+    return "#ef4444";
   });
 
   chartMensal = new Chart(document.getElementById("graficoMensal"), {
@@ -369,8 +421,8 @@ function graficoMensal(lancamentosFiltrados) {
     data: {
       labels: labels,
       datasets: [
-        { label: "Despesas Mensais", data: valores, backgroundColor: cores },
-        { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#000", borderWidth: 2, pointRadius: 0 }
+        { label: "Despesas Mensais", data: valores, backgroundColor: cores, borderRadius: 6, maxBarThickness: 60 },
+        { label: "Limite Orçamento", data: Array(valores.length).fill(limite), type: "line", borderColor: "#0f172a", borderWidth: 2, borderDash:, pointRadius: 0 }
       ]
     },
     options: { plugins: { title: { display: true, text: "Acompanhamento Mensal com Limite" } } }
@@ -404,7 +456,7 @@ function atualizarBoxes(dados) {
     `<b>Saúde Financeira</b><br>${status}`;
 }
 
-document.getElementById("aplicarFiltro").addEventListener("click", function () {
+function recarregarDashboard() {
   const inicio = document.getElementById("dataInicio").value;
   const fim = document.getElementById("dataFim").value;
 
@@ -420,7 +472,9 @@ document.getElementById("aplicarFiltro").addEventListener("click", function () {
   graficoCategorias(dadosAtualDashboard);
   gerarAlertas(dadosAtualDashboard);
   resumoCategorias(dadosAtualDashboard);
-});
+}
+
+document.getElementById("aplicarFiltro").addEventListener("click", recarregarDashboard);
 
 function gerarAlertas(dados) {
   let html = "";
@@ -432,8 +486,8 @@ function gerarAlertas(dados) {
 
     if (gasto > limites[cat]) {
       html += `
-      <p>
-        ⚠ ${cat} ultrapassou limite (${gasto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})
+      <p style="margin:4px 0;">
+        ⚠ <strong>${cat}</strong> ultrapassou limite (${gasto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})
       </p>`;
     }
   });
@@ -442,9 +496,8 @@ function gerarAlertas(dados) {
 }
 
 function graficoCategorias(dados) {
-  if (chartCategorias) {
-    chartCategorias.destroy();
-  }
+  if (chartCategorias) chartCategorias.destroy();
+
   const porCategoria = {};
   dados.forEach(l => {
     porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + l.valor;
@@ -453,22 +506,26 @@ function graficoCategorias(dados) {
   const total = Object.values(porCategoria).reduce((a, b) => a + b, 0);
 
   chartCategorias = new Chart(document.getElementById("graficoCategorias"), {
-    type: "pie",
+    type: "doughnut",
     data: {
       labels: Object.keys(porCategoria),
       datasets: [{
         data: Object.values(porCategoria),
-        backgroundColor: ["#4caf50", "#ff9800", "#2196f3", "#9c27b0", "#f44336", "#795548", "#00bcd4"]
+        backgroundColor: ["#10b981", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#64748b", "#06b6d4"],
+        borderWidth: 2,
+        borderColor: "#ffffff"
       }]
     },
     options: {
+      cutout: "55%",
       plugins: {
         title: { display: true, text: "Despesas por Categoria" },
         datalabels: {
           color: "#fff",
-          font: { weight: "bold" },
+          font: { weight: "bold", size: 11 },
           formatter: (value) => {
-            return total > 0 ? (value / total * 100).toFixed(1) + "%" : "0%";
+            const perc = total > 0 ? (value / total * 100) : 0;
+            return perc >= 4 ? perc.toFixed(1) + "%" : ""; // Evita sobreposição em fatias muito finas
           }
         }
       }
@@ -478,7 +535,6 @@ function graficoCategorias(dados) {
 }
 
 function atualizarTabela(lancamentosFiltrados) {
-  // Destrói o DataTable antigo antes de atualizar as linhas
   if ($.fn.DataTable.isDataTable('#tabelaLancamentos')) {
     $('#tabelaLancamentos').DataTable().destroy();
   }
@@ -493,14 +549,14 @@ function atualizarTabela(lancamentosFiltrados) {
       <td>${l.categoria}</td>
       <td>${l.descricao}</td>
       <td>${l.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-      <td>
-        <button onclick="editarLancamento(${l.id})">✏️</button>
+      <td style="white-space:nowrap;">
+        <button type="button" onclick="editarLancamento(${l.id})" style="padding:5px 10px; background:#e2e8f0; color:#0f172a;" title="Editar">✏️</button>
+        <button type="button" onclick="excluirLancamento(${l.id})" style="padding:5px 10px; background:#fee2e2; color:#b91c1c;" title="Excluir">🗑️</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Recria o DataTable com os dados atualizados
   $('#tabelaLancamentos').DataTable({
     paging: true,
     searching: true,
@@ -510,29 +566,6 @@ function atualizarTabela(lancamentosFiltrados) {
       url: "https://datatables.net"
     }
   });
-}
-
-function editarLancamento(id) {
-  const item = lancamentos.find(l => l.id === id);
-  if (!item) return;
-
-  const novaDescricao = prompt("Descrição", item.descricao);
-  if (novaDescricao === null) return;
-
-  const novoValor = prompt("Valor", item.valor);
-  if (novoValor === null) return;
-
-  item.descricao = novaDescricao;
-  item.valor = parseFloat(
-    novoValor.toString().replace(".", "").replace(",", ".")
-  );
-
-  salvarDados();
-
-  atualizarTabela(dadosAtualDashboard);
-  atualizarBoxes(dadosAtualDashboard);
-  graficoMensal(dadosAtualDashboard);
-  resumoCategorias(dadosAtualDashboard);
 }
 
 function resumoCategorias(dados) {
@@ -558,19 +591,160 @@ function resumoCategorias(dados) {
 }
 
 // ----------------------
+// Formulário: Inserir, Editar e Excluir
+// ----------------------
+
+document.getElementById("formLancamento").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const editId = parseInt(document.getElementById("editId").value);
+  const data = document.getElementById("inputData").value;
+  const categoria = document.getElementById("inputCategoria").value;
+  const descricao = document.getElementById("inputDescricao").value.trim();
+  const valor = parseFloat(document.getElementById("inputValor").value);
+
+  if (editId) {
+    const item = lancamentos.find(l => l.id === editId);
+    if (item) {
+      item.data = data;
+      item.categoria = categoria;
+      item.descricao = descricao;
+      item.valor = valor;
+    }
+  } else {
+    lancamentos.push({ data, descricao, categoria, valor });
+  }
+
+  cancelarEdicao();
+  salvarDados();
+  recarregarDashboard();
+});
+
+function editarLancamento(id) {
+  const item = lancamentos.find(l => l.id === id);
+  if (!item) return;
+
+  document.getElementById("editId").value = item.id;
+  document.getElementById("inputData").value = item.data;
+  document.getElementById("inputCategoria").value = item.categoria;
+  document.getElementById("inputDescricao").value = item.descricao;
+  document.getElementById("inputValor").value = item.valor;
+
+  document.getElementById("tituloForm").innerText = "Editando Lançamento";
+  document.getElementById("btnSalvar").innerText = "Atualizar";
+  document.getElementById("btnCancelarEdicao").style.display = "inline-block";
+  document.getElementById("formLancamento").scrollIntoView({ behavior: "smooth" });
+}
+
+function excluirLancamento(id) {
+  const item = lancamentos.find(l => l.id === id);
+  if (!item) return;
+
+  if (confirm(`Excluir "${item.descricao}" (${item.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})?`)) {
+    lancamentos = lancamentos.filter(l => l.id !== id);
+    salvarDados();
+    recarregarDashboard();
+  }
+}
+
+function cancelarEdicao() {
+  document.getElementById("formLancamento").reset();
+  document.getElementById("editId").value = "";
+  document.getElementById("tituloForm").innerText = "Novo Lançamento";
+  document.getElementById("btnSalvar").innerText = "Adicionar";
+  document.getElementById("btnCancelarEdicao").style.display = "none";
+}
+
+document.getElementById("btnCancelarEdicao").addEventListener("click", cancelarEdicao);
+
+// ----------------------
+// Sincronização com GitHub API
+// ----------------------
+
+document.getElementById("btnConfigToken").addEventListener("click", function () {
+  const atual = localStorage.getItem("github_token") || "";
+  const novo = prompt("Cole seu Personal Access Token do GitHub (Fine-grained com permissão Contents: Read & Write):", atual);
+  if (novo !== null) {
+    localStorage.setItem("github_token", novo.trim());
+    alert("Token salvo neste navegador!");
+  }
+});
+
+document.getElementById("btnSincronizarGitHub").addEventListener("click", async function () {
+  let token = localStorage.getItem("github_token");
+  if (!token) {
+    token = prompt("Cole seu Personal Access Token do GitHub para salvar na nuvem:");
+    if (!token) return;
+    localStorage.setItem("github_token", token.trim());
+  }
+
+  const btn = this;
+  btn.disabled = true;
+  btn.innerText = "⏳ Salvando...";
+
+  const usuario = "msoliveira2502";
+  const repositorio = "msoliveira2502.github.io";
+  const caminhoArquivo = "dados.js";
+  const urlApi = "https://github.com" + usuario + "/" + repositorio + "/contents/" + caminhoArquivo;
+
+  try {
+    const resGet = await fetch(urlApi, {
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+
+    if (!resGet.ok) {
+      if (resGet.status === 401) localStorage.removeItem("github_token");
+      throw new Error("Erro ao acessar o GitHub. Verifique o Token ou o nome do repositório.");
+    }
+
+    const infoArquivo = await resGet.json();
+
+    const dadosLimpos = lancamentos.map(({ data, descricao, categoria, valor }) => ({
+      data,
+      descricao,
+      categoria,
+      valor
+    }));
+
+    const linhas = dadosLimpos.map(item => "  " + JSON.stringify(item));
+    const conteudoFinal = "let lancamentos = [\n" + linhas.join(",\n") + "\n];\n";
+    const conteudoBase64 = btoa(unescape(encodeURIComponent(conteudoFinal)));
+
+    const resPut = await fetch(urlApi, {
+      method: "PUT",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Atualização via portal de orçamento",
+        content: conteudoBase64,
+        sha: infoArquivo.sha
+      })
+    });
+
+    if (!resPut.ok) throw new Error("Falha ao gravar o arquivo dados.js no GitHub.");
+
+    localStorage.removeItem("lancamentos_pendentes");
+    alert("Salvo no GitHub com sucesso! O site atualizará em cerca de 30 segundos.");
+  } catch (erro) {
+    alert(erro.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "☁️ Salvar no GitHub";
+  }
+});
+
+// ----------------------
 // Inicialização
 // ----------------------
 if (typeof lancamentos !== "undefined") {
-  console.log("Total de lançamentos carregados:", lancamentos.length);
-  dadosAtualDashboard = [...lancamentos];
-  atualizarTabela(lancamentos);
-  atualizarBoxes(lancamentos);
-  graficoMensal(lancamentos);
-  graficoCategorias(lancamentos);
-  gerarAlertas(lancamentos);
-  resumoCategorias(lancamentos);
+  recarregarDashboard();
 }
 </script>
-
 </body>
 </html>
