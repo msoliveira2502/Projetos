@@ -13,7 +13,6 @@
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-
 <style>
   @import url('https://googleapis.com');
 
@@ -34,29 +33,36 @@
     background-color: var(--bg-page);
     color: var(--text-main);
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 32px 20px;
     max-width: 1100px;
     line-height: 1.5;
   }
 
   h1 {
     text-align: center;
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 700;
     letter-spacing: -0.025em;
     margin-bottom: 28px;
     color: var(--text-main);
   }
 
-  /* Grid responsivo para os cards de resumo */
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 36px 0 16px;
+  }
+
+  /* Grid responsivo para os 5 cards de resumo */
   .resumo {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
     gap: 16px;
     margin: 24px 0;
   }
 
-  /* Estilo moderno estilo Fintech para os cards */
+  /* Cards estilo Fintech */
   .caixa {
     background: var(--bg-card) !important;
     color: var(--text-main) !important;
@@ -66,26 +72,55 @@
     border-top: 4px solid #94a3b8;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted) !important;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
   .caixa:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+  }
+
+  /* Destaca os valores em R$ ou % inseridos pelo JS dentro dos cards */
+  .caixa strong, .caixa b, .caixa span {
+    display: block;
+    margin-top: 6px;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text-main);
   }
 
   /* Cores de destaque apenas na borda superior */
   .renda { border-top-color: #10b981 !important; }
   .despesas { border-top-color: #ef4444 !important; }
   .saldo { border-top-color: #3b82f6 !important; }
-  .caixa:nth-child(4) { border-top-color: #f59e0b !important; } /* Comprometimento */
-  .caixa:nth-child(5) { border-top-color: #6366f1 !important; } /* Saúde Financeira */
+  #caixaComprometimento { border-top-color: #f59e0b !important; }
+  #caixaSaude { border-top-color: #6366f1 !important; }
 
-  /* Estilização dos Filtros e Botões */
-  select, input[type="date"], input[type="month"], input[type="file"] {
+  /* Barra de Filtros */
+  #filtros {
+    background: var(--bg-card);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 24px 0 !important;
+  }
+
+  #filtros label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  input[type="month"], select {
     font-family: inherit;
     font-size: 0.9rem;
     padding: 8px 12px;
@@ -96,7 +131,7 @@
     outline: none;
   }
 
-  select:focus, input:focus {
+  input[type="month"]:focus, select:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
@@ -105,7 +140,7 @@
     font-family: inherit;
     font-size: 0.9rem;
     font-weight: 600;
-    padding: 9px 18px;
+    padding: 9px 20px;
     border-radius: 8px;
     border: none;
     background-color: #0f172a;
@@ -118,7 +153,24 @@
     background-color: #334155;
   }
 
-  /* Container dos gráficos */
+  /* Banner de Alertas */
+  #alertas {
+    margin: 20px 0 !important;
+    padding: 16px 20px !important;
+    border-radius: 10px !important;
+    background-color: #fffbeb !important;
+    border: 1px solid #fde68a;
+    border-left: 5px solid #f59e0b;
+    color: #92400e;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  #alertas:empty {
+    display: none; /* Esconde a caixa se não houver alertas */
+  }
+
+  /* Gráficos emoldurados em cards */
   canvas {
     background: var(--bg-card);
     padding: 20px;
@@ -130,37 +182,38 @@
     max-width: 100%;
   }
 
-  /* Áreas de consulta, upload e tabelas */
-  .consulta, .upload {
+  /* Checkbox de consolidação */
+  label[for="modoConsolidado"], div:has(> label > #modoConsolidado) {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 16px 0 8px !important;
+  }
+
+  /* Tabelas modernas e responsivas */
+  #containerTabelaLancamentos, #tabelaCategorias {
     background: var(--bg-card);
-    padding: 24px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    margin: 24px auto;
-    width: 100%;
+    overflow-x: auto; /* Permite rolar lateralmente no celular sem quebrar o layout */
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 16px;
-    background: var(--bg-card);
-    border-radius: 8px;
-    overflow: hidden;
+    border: none !important;
   }
 
   th, td {
-    border-bottom: 1px solid var(--border-color);
-    border-left: none;
-    border-right: none;
-    padding: 12px 16px;
+    border: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 14px 16px;
     text-align: left;
     font-size: 0.9rem;
   }
 
   th {
-    background: #f1f5f9;
+    background: #f8fafc;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -168,83 +221,88 @@
     letter-spacing: 0.05em;
   }
 
+  tr:last-child td {
+    border-bottom: none !important;
+  }
+
   tr:hover td {
     background-color: #f8fafc;
   }
-</style>
 
-  
+  /* Alinha valores numéricos à direita nas tabelas */
+  #tabelaCategorias th:nth-child(2),
+  #tabelaCategorias td:nth-child(2),
+  #tabelaCategorias th:nth-child(3),
+  #tabelaCategorias td:nth-child(3),
+  #tabelaLancamentos th:nth-child(4),
+  #tabelaLancamentos td:nth-child(4) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
 </head>
 <body>
   <h1>Meu Orçamento Pessoal</h1>
 
   <div class="resumo">
-  <div class="caixa renda" id="caixaRenda"></div>
-  <div class="caixa despesas" id="caixaDespesas"></div>
-  <div class="caixa saldo" id="caixaSaldo"></div>
-  <div class="caixa" id="caixaComprometimento" style="background:#ff9800"></div>
-  <div class="caixa" id="caixaSaude" style="background:#607d8b"></div>
-</div>
+    <div class="caixa renda" id="caixaRenda"></div>
+    <div class="caixa despesas" id="caixaDespesas"></div>
+    <div class="caixa saldo" id="caixaSaldo"></div>
+    <div class="caixa" id="caixaComprometimento"></div>
+    <div class="caixa" id="caixaSaude"></div>
+  </div>
 
-  <div id="filtros" style="margin-bottom:15px; text-align:center;">
-  <label for="dataInicio">De:</label>
-  <input type="month" id="dataInicio">
-  <label for="dataFim">Até:</label>
-  <input type="month" id="dataFim">
+  <div id="filtros">
+    <label for="dataInicio">De:</label>
+    <input type="month" id="dataInicio">
+    <label for="dataFim">Até:</label>
+    <input type="month" id="dataFim">
+    <button id="aplicarFiltro">Aplicar Filtro</button>
+  </div>
 
-  <button id="aplicarFiltro">Aplicar Filtro</button>
-</div>
-
-
- <div id="alertas"
-     style="margin:20px;padding:15px;border-radius:8px;background:#fff3cd">
-</div> 
-
+  <div id="alertas"></div> 
 
   <canvas id="graficoMensal" width="600" height="300"></canvas>
   <canvas id="graficoCategorias" width="600" height="300"></canvas>
 
-<h2>Resumo por Categoria</h2>
-
-<table id="tabelaCategorias">
-  <thead>
-    <tr>
-      <th>Categoria</th>
-      <th>Total</th>
-      <th>%</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-
-  <!-- Container da tabela de lançamentos -->
-<div style="margin:10px; text-align:right;">
-  <label><input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais</label>
-</div>
-
-<div id="containerTabelaLancamentos" style="margin-top:20px;">
-  <table id="tabelaLancamentos" border="1" style="width:100%;">
+  <h2>Resumo por Categoria</h2>
+  <table id="tabelaCategorias">
     <thead>
       <tr>
-        <th>Data</th>
         <th>Categoria</th>
-        <th>Descrição</th>
-        <th>Valor</th>
-        <th>Ações</th>
+        <th>Total</th>
+        <th>%</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- Linhas preenchidas via JavaScript -->
-    </tbody>
+    <tbody></tbody>
   </table>
-</div>
 
+  <div style="text-align:right; margin-top: 28px;">
+    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="modoConsolidado"> Consolidar lançamentos iguais
+    </label>
+  </div>
 
-<script>
-  document.write('<script src="dados.js?v=' + Date.now() + '"><\/script>');
-</script>
+  <div id="containerTabelaLancamentos" style="margin-top:12px;">
+    <table id="tabelaLancamentos">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Linhas preenchidas via JavaScript -->
+      </tbody>
+    </table>
+  </div>
 
+  <script>
+    document.write('<script src="dados.js?v=' + Date.now() + '"><\/script>');
+  </script>
 
 <script>
 let chartMensal = null;
