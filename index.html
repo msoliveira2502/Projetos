@@ -344,6 +344,10 @@
     <button type="button" class="menu-btn" id="navObjetivos" onclick="alternarAba('objetivos')">
       🎯 Objetivos
     </button>
+    <button type="button" class="menu-btn" id="navCartoes" onclick="alternarAba('cartoes')">
+      💳 Cartões
+    </button>
+
   </aside>
 
   <!-- ÁREA DIREITA (PORTAL) -->
@@ -460,9 +464,6 @@
   <canvas id="graficoMensal" width="600" height="300"></canvas>
   <canvas id="graficoCategorias" width="600" height="300"></canvas>
 
-  
-
-
   <h2>Resumo por Categoria</h2>
   <table id="tabelaCategorias">
     <thead>
@@ -502,8 +503,6 @@
 
     <!-- ABA 2: OBJETIVOS (Fica oculta até clicar no menu) -->
     <div id="abaObjetivos" style="display: none;">
-      
-      <!-- COLE AQUI DENTRO A <div id="secaoObjetivos">...</div> QUE JÁ CRIAMOS -->
 
       <!-- SEÇÃO: MÓDULO DE OBJETIVOS E INTELIGÊNCIA FINANCEIRA -->
   <div id="secaoObjetivos" style="margin: 36px 0; padding: 24px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
@@ -568,6 +567,66 @@
   </div>
 
     </div> <!-- Fim da abaObjetivos -->
+
+        <!-- ABA 3: DETALHAMENTO DE CARTÕES -->
+    <div id="abaCartoes" style="display: none;">
+      <div style="padding: 24px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.35rem; color: #0f172a;">💳 Detalhamento de Cartões & Micro Grupos</h2>
+            <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">Importe suas faturas em PDF e analise para onde vai cada real gasto no crédito</p>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <input type="month" id="filtroMesCartoes" style="padding: 7px 10px;">
+            <button type="button" onclick="renderizarAbaCartoes()" style="background: #0f172a;">Filtrar</button>
+            <button type="button" id="btnAbrirImportarPdf" style="background: #7c3aed;">📄 Importar Fatura PDF</button>
+          </div>
+        </div>
+
+        <!-- MOVA PARA CÁ O PAINEL <div id="painelImportarPdf">...</div> QUE CRIAMOS ANTERIORMENTE -->
+
+        <!-- Cards de Resumo por Cartão -->
+        <div id="cardsResumoCartoes" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px;"></div>
+
+        <!-- Gráfico Exclusivo de Micro Grupos + Tabela Resumo -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start; margin-bottom: 28px;">
+          <div>
+            <canvas id="graficoMicroCartoes" height="260"></canvas>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="padding: 12px;">Micro Grupo</th>
+                  <th style="padding: 12px; text-align: right;">Total</th>
+                  <th style="padding: 12px; text-align: right;">%</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaMicroCartoes"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabela Detalhada Apenas das Compras de Cartão -->
+        <h3 style="font-size: 1.05rem; color: #0f172a; margin-bottom: 12px;">Lançamentos Detalhados nos Cartões</h3>
+        <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 12px;">Data</th>
+                <th style="padding: 12px;">Micro Grupo</th>
+                <th style="padding: 12px;">Descrição / Cartão</th>
+                <th style="padding: 12px; text-align: right;">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaItensCartoes"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div> <!-- FIM DA ABA 3 (abaCartoes) -->
+
 
   </main>
 
@@ -1233,26 +1292,150 @@ function excluirObjetivo(id) {
 }
 }
 
+let chartMicroCartoes = null;
+
 function alternarAba(aba) {
   const divOrcamento = document.getElementById("abaOrcamento");
   const divObjetivos = document.getElementById("abaObjetivos");
+  const divCartoes = document.getElementById("abaCartoes");
+
   const btnOrcamento = document.getElementById("navOrcamento");
   const btnObjetivos = document.getElementById("navObjetivos");
+  const btnCartoes = document.getElementById("navCartoes");
+
+  divOrcamento.style.display = "none";
+  divObjetivos.style.display = "none";
+  divCartoes.style.display = "none";
+
+  btnOrcamento.classList.remove("ativo");
+  btnObjetivos.classList.remove("ativo");
+  btnCartoes.classList.remove("ativo");
 
   if (aba === "orcamento") {
     divOrcamento.style.display = "block";
-    divObjetivos.style.display = "none";
     btnOrcamento.classList.add("ativo");
-    btnObjetivos.classList.remove("ativo");
     recarregarDashboard();
-  } else {
-    divOrcamento.style.display = "none";
+  } else if (aba === "objetivos") {
     divObjetivos.style.display = "block";
-    btnOrcamento.classList.remove("ativo");
     btnObjetivos.classList.add("ativo");
     renderizarObjetivos();
+  } else if (aba === "cartoes") {
+    divCartoes.style.display = "block";
+    btnCartoes.classList.add("ativo");
+    renderizarAbaCartoes();
   }
 }
+
+function renderizarAbaCartoes() {
+  const mesFiltro = document.getElementById("filtroMesCartoes").value;
+  const fmt = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  // Filtra apenas lançamentos da categoria "Cartões"
+  const itensCartao = lancamentos.filter(l => {
+    const ehCartao = l.categoria === "Cartões";
+    const bateMes = !mesFiltro || l.data.startsWith(mesFiltro);
+    return ehCartao && bateMes;
+  });
+
+  // 1. Agrupa por Cartão (identificando pelo nome na descrição)
+  const porCartao = {};
+  const porMicroGrupo = {};
+
+  itensCartao.forEach(item => {
+    const descUpper = item.descricao.toUpperCase();
+    let nomeCartao = "Outros Cartões";
+    if (descUpper.includes("NU")) nomeCartao = "Cartão Nu";
+    else if (descUpper.includes("BRADESCO")) nomeCartao = "Cartão Bradesco";
+    else if (descUpper.includes("BB")) nomeCartao = "Cartão BB";
+    else if (descUpper.includes("HIPER")) nomeCartao = "Cartão Hiper";
+    else if (descUpper.includes("PORTO")) nomeCartao = "Cartão Porto";
+
+    porCartao[nomeCartao] = (porCartao[nomeCartao] || 0) + item.valor;
+
+    const grupo = item.subcategoria || "Fatura Cheia (Não detalhada)";
+    porMicroGrupo[grupo] = (porMicroGrupo[grupo] || 0) + item.valor;
+  });
+
+  // Renderiza Cards de Totais por Cartão
+  const cardsEl = document.getElementById("cardsResumoCartoes");
+  cardsEl.innerHTML = "";
+  const totalGeralCartoes = itensCartao.reduce((s, i) => s + i.valor, 0);
+
+  cardsEl.innerHTML +=
+    '<div class="caixa" style="border-top-color:#7c3aed !important;">' +
+      '<b>Total Cartões</b><br>' + fmt(totalGeralCartoes) +
+    '</div>';
+
+  Object.entries(porCartao).forEach(par => {
+    cardsEl.innerHTML +=
+      '<div class="caixa" style="border-top-color:#3b82f6 !important;">' +
+        '<b>' + par.at(0) + '</b><br>' + fmt(par.at(1)) +
+      '</div>';
+  });
+
+  // 2. Renderiza Tabela de Micro Grupos
+  const tbodyMicro = document.getElementById("tabelaMicroCartoes");
+  tbodyMicro.innerHTML = "";
+  const rankingMicro = Object.entries(porMicroGrupo).sort((a, b) => b.at(1) - a.at(1));
+
+  rankingMicro.forEach(par => {
+    const perc = totalGeralCartoes > 0 ? ((par.at(1) / totalGeralCartoes) * 100).toFixed(1) : "0.0";
+    tbodyMicro.innerHTML +=
+      '<tr>' +
+        '<td style="padding:10px 12px;">' + par.at(0) + '</td>' +
+        '<td style="padding:10px 12px; text-align:right; font-weight:600;">' + fmt(par.at(1)) + '</td>' +
+        '<td style="padding:10px 12px; text-align:right; color:#64748b;">' + perc + '%</td>' +
+      '</tr>';
+  });
+
+  // 3. Gráfico de Rosca dos Micro Grupos
+  if (chartMicroCartoes) chartMicroCartoes.destroy();
+  chartMicroCartoes = new Chart(document.getElementById("graficoMicroCartoes"), {
+    type: "doughnut",
+    data: {
+      labels: rankingMicro.map(p => p.at(0)),
+      datasets: Array.of({
+        data: rankingMicro.map(p => p.at(1)),
+        backgroundColor: Array.of("#7c3aed", "#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#06b6d4", "#64748b"),
+        borderWidth: 2,
+        borderColor: "#ffffff"
+      })
+    },
+    options: {
+      cutout: "55%",
+      plugins: {
+        title: { display: true, text: "Distribuição por Micro Grupo" },
+        datalabels: {
+          color: "#fff",
+          font: { weight: "bold", size: 11 },
+          formatter: v => {
+            const p = totalGeralCartoes > 0 ? (v / totalGeralCartoes) * 100 : 0;
+            return p >= 4 ? p.toFixed(1) + "%" : "";
+          }
+        }
+      }
+    },
+    plugins: Array.of(ChartDataLabels)
+  });
+
+  // 4. Tabela Detalhada dos Itens
+  const tbodyItens = document.getElementById("tabelaItensCartoes");
+  tbodyItens.innerHTML = "";
+  itensCartao.forEach(item => {
+    const badge = item.subcategoria
+      ? '<span style="background:#f3e8ff; color:#6b21a8; padding:3px 8px; border-radius:99px; font-size:0.75rem; font-weight:600;">' + item.subcategoria + '</span>'
+      : '<span style="background:#f1f5f9; color:#64748b; padding:3px 8px; border-radius:99px; font-size:0.75rem;">Fatura Cheia</span>';
+
+    tbodyItens.innerHTML +=
+      '<tr>' +
+        '<td style="padding:10px 12px;">' + item.data + '</td>' +
+        '<td style="padding:10px 12px;">' + badge + '</td>' +
+        '<td style="padding:10px 12px;">' + item.descricao + '</td>' +
+        '<td style="padding:10px 12px; text-align:right; font-weight:600;">' + fmt(item.valor) + '</td>' +
+      '</tr>';
+  });
+}
+
 
 // ----------------------
 // Copiar Lançamentos do Mês Anterior (com edição e exclusão)
