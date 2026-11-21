@@ -730,7 +730,9 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
   const usuario = "msoliveira2502";
   const repositorio = "Projetos";
   const caminhoArquivo = "dados.js";
-  const urlApi = "https://github.com" + usuario + "/" + repositorio + "/contents/" + caminhoArquivo;
+  const dominioApi = ["https:", "", "://github.com", "repos", usuario, repositorio, "contents", caminhoArquivo];
+  const urlApi = dominioApi.join("/");
+
 
   try {
     // 1. Busca o SHA atual do arquivo
