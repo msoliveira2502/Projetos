@@ -568,7 +568,7 @@
 
     </div> <!-- Fim da abaObjetivos -->
 
-        <!-- ABA 3: DETALHAMENTO DE CARTÕES -->
+         <!-- ABA 3: DETALHAMENTO DE CARTÕES -->
     <div id="abaCartoes" style="display: none;">
       <div style="padding: 24px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
         
@@ -580,11 +580,72 @@
           <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
             <input type="month" id="filtroMesCartoes" style="padding: 7px 10px;">
             <button type="button" onclick="renderizarAbaCartoes()" style="background: #0f172a;">Filtrar</button>
-            <button type="button" id="btnAbrirImportarPdf" style="background: #7c3aed;">📄 Importar Fatura PDF</button>
+            <button type="button" onclick="abrirPainelPdf()" style="background: #7c3aed;">📄 Importar Fatura PDF</button>
           </div>
         </div>
 
-        <!-- MOVA PARA CÁ O PAINEL <div id="painelImportarPdf">...</div> QUE CRIAMOS ANTERIORMENTE -->
+        <!-- Painel de Importação de Fatura PDF -->
+        <div id="painelImportarPdf" style="display:none; margin-bottom:24px; padding:18px; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:10px;">
+          <h4 style="margin:0 0 12px; font-size:1rem; color:#4c1d95;">📄 Importar Fatura de Cartão (PDF)</h4>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; align-items:end; margin-bottom:14px;">
+            <div>
+              <label style="display:block; font-size:0.78rem; color:#4c1d95; margin-bottom:4px;">Cartão (Origem)</label>
+              <select id="pdfOrigemCartao" style="width:100%;">
+                <option value="Cartão Nu">Cartão Nu</option>
+                <option value="Cartão Bradesco">Cartão Bradesco</option>
+                <option value="Cartão BB">Cartão BB</option>
+                <option value="Cartão Hiper">Cartão Hiper</option>
+                <option value="Cartão Porto">Cartão Porto</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.78rem; color:#4c1d95; margin-bottom:4px;">Mês da Fatura</label>
+              <input type="month" id="pdfMesFatura" style="width:100%;">
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.78rem; color:#4c1d95; margin-bottom:4px;">Arquivo PDF</label>
+              <input type="file" id="inputArquivoPdf" accept="application/pdf" style="width:100%; background:#fff; padding:6px; border-radius:8px; border:1px solid #cbd5e1;">
+            </div>
+
+            <div>
+              <button type="button" id="btnProcessarPdf" style="width:100%; background:#7c3aed;">🔍 Ler Fatura</button>
+            </div>
+          </div>
+
+          <!-- Área de Revisão dos Itens Extraídos -->
+          <div id="areaRevisaoPdf" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px; background:#fff; padding:10px 14px; border-radius:8px; border:1px solid #e2e8f0;">
+              <label style="font-size:0.85rem; color:#0f172a; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="chkSubstituirCheio" checked>
+                Substituir lançamento cheio existente deste cartão no mês (evita duplicidade)
+              </label>
+              <strong id="resumoTotalPdf" style="font-size:0.95rem; color:#4c1d95;">Total: R$ 0,00</strong>
+            </div>
+
+            <div style="overflow-x:auto; max-height:340px; background:#fff; border:1px solid #e2e8f0; border-radius:8px;">
+              <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th style="padding:8px;">Data</th>
+                    <th style="padding:8px;">Descrição</th>
+                    <th style="padding:8px;">Micro Grupo</th>
+                    <th style="padding:8px; text-align:right;">Valor (R$)</th>
+                    <th style="padding:8px; text-align:center;">Remover</th>
+                  </tr>
+                </thead>
+                <tbody id="corpoTabelaPdf"></tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+              <button type="button" id="btnFecharPdf" style="background:#94a3b8;">Cancelar</button>
+              <button type="button" id="btnConfirmarPdf" style="background:#10b981;">✅ Importar Itens para o Portal</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Cards de Resumo por Cartão -->
         <div id="cardsResumoCartoes" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px;"></div>
@@ -625,8 +686,7 @@
         </div>
 
       </div>
-    </div> <!-- FIM DA ABA 3 (abaCartoes) -->
-
+    </div> <!-- FIM DA ABA 3 (abaCartoes) -->   
 
   </main>
 
