@@ -1105,12 +1105,13 @@ document.getElementById("btnSincronizarGitHub").addEventListener("click", async 
     const infoArquivo = await requisicaoGitHub("GET", urlApi + "?ref=main&t=" + Date.now(), token, null);
 
     // 2. Monta o novo conteúdo do dados.js
-    const dadosLimpos = lancamentos.map(({ data, descricao, categoria, valor }) => ({
-      data,
-      descricao,
-      categoria,
-      valor
-    }));
+    const dadosLimpos = lancamentos.map(({ data, descricao, categoria, valor, subcategoria }) => {
+      const obj = { data, descricao, categoria, valor };
+      if (subcategoria) obj.subcategoria = subcategoria;
+      return obj;
+    });
+
+      
 
     const linhas = dadosLimpos.map(item => "  " + JSON.stringify(item));
     const conteudoFinal = "let lancamentos = [\n" + linhas.join(",\n") + "\n];\n\nlancamentos.forEach((item, index) => {\n  item.id = index + 1;\n});\n";
