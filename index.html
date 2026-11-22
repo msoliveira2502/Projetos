@@ -1637,37 +1637,57 @@ document.getElementById("btnConfirmarCopia").addEventListener("click", function 
 let itensExtraidosPdf = [];
 
 const MICRO_CATEGORIAS = Array.of(
-  "Alimentação/Delivery",
-  "Supermercado",
-  "Combustível/Auto",
+  "Alimentação/Restaurantes",
+  "Supermercado/Padaria",
+  "Combustível/Auto/Seguro",
   "Farmácia/Saúde",
-  "Compras Online/Vestuário",
+  "Viagens/Hospedagem",
+  "Compras/Lojas",
+  "Cuidados Pessoais/Serviços",
   "Assinaturas/Lazer",
   "Outros Cartão"
 );
 
+// Inteligência calibrada com os estabelecimentos reais da sua rotina
 function classificarMicroGrupo(descricao) {
   const txt = descricao.toUpperCase();
-  if (/IFOOD|UBER EATS|RAPPI|RESTAURANTE|PADARIA|LANCHE|PIZZA|BURGER|CAFE|AÇAÍ|ACAI|CHURRASC|SUSHI/.test(txt)) {
-    return "Alimentação/Delivery";
+
+  // 1. Alimentação, Restaurantes e Cafeterias
+  if (/IFOOD|UBER EATS|RAPPI|OUTBACK|RUSTIKOS|CAFETER|GALPAO COLONIA|RESTAURANTE|LANCHE|PIZZA|BURGER|AÇAÍ|ACAI|CHURRASC|SUSHI/.test(txt)) {
+    return "Alimentação/Restaurantes";
   }
-  if (/SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA|PANIFIC/.test(txt)) {
-    return "Supermercado";
+  // 2. Supermercado e Padaria
+  if (/PADOCA|PADARIA|PANIFIC|BIG REAL|SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA/.test(txt)) {
+    return "Supermercado/Padaria";
   }
-  if (/POSTO|COMBUST|IPIRANGA|SHELL|BR PETROBRAS|AUTO|ESTACIONAMENTO|ESTAR|PEDAGIO|SEM PARAR|VELOE/.test(txt)) {
-    return "Combustível/Auto";
+  // 3. Combustível, Pedágio e Seguro Auto
+  if (/POSTO|KLEMTZ|COMBUST|IPIRANGA|SHELL|PETROBRAS|VELOE|SEM PARAR|PEDAGIO|BRADESCO AUT|ESTACIONAMENTO|ESTAR/.test(txt)) {
+    return "Combustível/Auto/Seguro";
   }
-  if (/FARMACIA|DROGA|NISSEI|PANVEL|RAIA|SAUDE|CLINICA|HOSPITAL|LAB|ODONTO|EXAME/.test(txt)) {
+  // 4. Farmácia e Saúde
+  if (/RAIA|DROGA|FARMACIA|NISSEI|HIPERFARMA|PANVEL|CLINICA|SAUDE|HOSPITAL|LAB|ODONTO|EXAME/.test(txt)) {
     return "Farmácia/Saúde";
   }
-  if (/MERCADO LIVRE|MERCADOLIVRE|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO/.test(txt)) {
-    return "Compras Online/Vestuário";
+  // 5. Viagens, Passagens Aéreas e Hotéis
+  if (/GOL LINHAS|LATAM|AZUL|POUSADA|IBIS|HOTEL|AIRBNB|BOOKING|DECOLAR|HOTEIS/.test(txt)) {
+    return "Viagens/Hospedagem";
   }
+  // 6. Compras e Lojas de Departamento
+  if (/HAVAN|MERCADO LIVRE|MERCADOLIVRE|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO/.test(txt)) {
+    return "Compras/Lojas";
+  }
+  // 7. Cuidados Pessoais, Seguros e Serviços
+  if (/BARBEARIA|SALAO|ESTETICA|ESPACOLASER|SEGURO SUPERPROTEGIDO|SEGURO/.test(txt)) {
+    return "Cuidados Pessoais/Serviços";
+  }
+  // 8. Assinaturas e Lazer
   if (/NETFLIX|SPOTIFY|APPLE|GOOGLE|PRIME|DISNEY|HBO|CINEMA|INGRESSO|SMART FIT|TOTALPASS/.test(txt)) {
     return "Assinaturas/Lazer";
   }
-  return "Outros Cartão";
+
+  return "Outros despesas";
 }
+
 
 function abrirPainelPdf() {
   const painel = document.getElementById("painelImportarPdf");
