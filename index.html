@@ -1697,8 +1697,9 @@ document.getElementById("btnProcessarPdf").addEventListener("click", async funct
   btn.innerText = "⏳ Lendo PDF...";
 
   try {
+    const pdfjs = await garantirPdfJsCarregado();
     const arrayBuffer = await arquivo.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     let textoCompleto = "";
 
     for (let p = 1; p <= pdf.numPages; p++) {
@@ -1809,6 +1810,32 @@ document.getElementById("btnConfirmarPdf").addEventListener("click", function ()
   renderizarAbaCartoes();
   alert("Fatura detalhada importada com sucesso! Clique em '☁️ Salvar no GitHub' para gravar na nuvem.");
 });
+
+function garantirPdfJsCarregado() {
+  return new Promise(function (resolve, reject) {
+    if (typeof window.pdfjsLib !== "undefined") {
+      resolve(window.pdfjsLib);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = function () {
+      if (typeof window.pdfjsLib !== "undefined") {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        resolve(window.pdfjsLib);
+      } else {
+        reject(new Error("Biblioteca PDF.js carregou mas não iniciou."));
+      }
+    };
+    script.onerror = function () {
+      reject(new Error("Não foi possível baixar o leitor de PDF. Verifique sua internet."));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 
   
 // ----------------------
