@@ -1894,9 +1894,18 @@ document.getElementById("btnConfirmarPdf").addEventListener("click", function ()
   const origem = document.getElementById("pdfOrigemCartao").value;
   const mesFatura = document.getElementById("pdfMesFatura").value;
 
-  if (substituir) {
-    lancamentos = lancamentos.filter(l => !(l.data.startsWith(mesFatura) && l.descricao.toLowerCase() === origem.toLowerCase()));
+    if (substituir) {
+    const origemLower = origem.toLowerCase();
+    // Remove o lançamento cheio ("Cartão Bradesco") E quaisquer itens já importados ("... (Cartão Bradesco)") no mesmo mês
+    lancamentos = lancamentos.filter(l => {
+      if (!l.data.startsWith(mesFatura)) return true;
+      const descLower = l.descricao.toLowerCase();
+      const ehCheio = descLower === origemLower;
+      const ehDetalhadoDoMesmoCartao = descLower.includes("(" + origemLower + ")");
+      return !(ehCheio || ehDetalhadoDoMesmoCartao);
+    });
   }
+
 
   itensExtraidosPdf.forEach(item => {
     lancamentos.push({
