@@ -719,6 +719,24 @@ function reindexarIds() {
 }
 reindexarIds();
 
+// Remove duplicados exatos (mesma data, descrição e valor) automaticamente
+function limparDuplicadosBase() {
+  const vistos = new Set();
+  const antes = lancamentos.length;
+  lancamentos = lancamentos.filter(item => {
+    const chave = item.data + "|" + item.descricao.trim() + "|" + item.valor;
+    if (vistos.has(chave)) return false;
+    vistos.add(chave);
+    return true;
+  });
+  if (lancamentos.length < antes) {
+    console.log("Removidos " + (antes - lancamentos.length) + " lançamentos duplicados.");
+    salvarDados();
+  }
+}
+limparDuplicadosBase();
+
+
 const CONFIG = {
   rendaMensal: 19000
 };
