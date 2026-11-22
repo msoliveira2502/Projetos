@@ -115,6 +115,7 @@ let lancamentos = [
   {"data":"2026-11-10","descricao":"Cartão BB","categoria":"Cartões","valor":418.61},
   {"data":"2026-11-12","descricao":"Cartão Bradesco","categoria":"Cartões","valor":5525.35},
   {"data":"2026-11-15","descricao":"Escola Miguel","categoria":"Educação","valor":1112},
+  {"data":"2026-11-16","descricao":"Cheque Especial","categoria":"Impostos","valor":534.88},
   {"data":"2026-11-20","descricao":"Financiamento Imobiliário","categoria":"Casa/Transporte","valor":5275},
   {"data":"2026-11-22","descricao":"Cartão Porto","categoria":"Cartões","valor":321},
   {"data":"2026-11-25","descricao":"Internet","categoria":"Serviços","valor":110},
