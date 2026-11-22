@@ -332,9 +332,6 @@
 </style>
 
 <script src="https://cloudflare.com"></script>
-<script>
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cloudflare.com";
-</script>
 
 </head>
 
@@ -1645,49 +1642,64 @@ const MICRO_CATEGORIAS = Array.of(
   "Compras/Lojas",
   "Cuidados Pessoais/Serviços",
   "Assinaturas/Lazer",
-  "Outras despesas 
+  "Outras desesas"
 );
 
-// Inteligência calibrada com os estabelecimentos reais da sua rotina
 function classificarMicroGrupo(descricao) {
   const txt = descricao.toUpperCase();
 
-  // 1. Alimentação, Restaurantes e Cafeterias
   if (/IFOOD|UBER EATS|RAPPI|OUTBACK|RUSTIKOS|CAFETER|GALPAO COLONIA|RESTAURANTE|LANCHE|PIZZA|BURGER|AÇAÍ|ACAI|CHURRASC|SUSHI/.test(txt)) {
     return "Alimentação/Restaurantes";
   }
-  // 2. Supermercado e Padaria
   if (/PADOCA|PADARIA|PANIFIC|BIG REAL|SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA/.test(txt)) {
     return "Supermercado/Padaria";
   }
-  // 3. Combustível, Pedágio e Seguro Auto
   if (/POSTO|KLEMTZ|COMBUST|IPIRANGA|SHELL|PETROBRAS|VELOE|SEM PARAR|PEDAGIO|BRADESCO AUT|ESTACIONAMENTO|ESTAR/.test(txt)) {
     return "Combustível/Auto/Seguro";
   }
-  // 4. Farmácia e Saúde
   if (/RAIA|DROGA|FARMACIA|NISSEI|HIPERFARMA|PANVEL|CLINICA|SAUDE|HOSPITAL|LAB|ODONTO|EXAME/.test(txt)) {
     return "Farmácia/Saúde";
   }
-  // 5. Viagens, Passagens Aéreas e Hotéis
   if (/GOL LINHAS|LATAM|AZUL|POUSADA|IBIS|HOTEL|AIRBNB|BOOKING|DECOLAR|HOTEIS/.test(txt)) {
     return "Viagens/Hospedagem";
   }
-  // 6. Compras e Lojas de Departamento
   if (/HAVAN|MERCADO LIVRE|MERCADOLIVRE|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO/.test(txt)) {
     return "Compras/Lojas";
   }
-  // 7. Cuidados Pessoais, Seguros e Serviços
   if (/BARBEARIA|SALAO|ESTETICA|ESPACOLASER|SEGURO SUPERPROTEGIDO|SEGURO/.test(txt)) {
     return "Cuidados Pessoais/Serviços";
   }
-  // 8. Assinaturas e Lazer
   if (/NETFLIX|SPOTIFY|APPLE|GOOGLE|PRIME|DISNEY|HBO|CINEMA|INGRESSO|SMART FIT|TOTALPASS/.test(txt)) {
     return "Assinaturas/Lazer";
   }
 
-  return "Outrs despesas";
+  return "Outras despesas";
 }
 
+function garantirPdfJsCarregado() {
+  return new Promise(function (resolve, reject) {
+    if (typeof window.pdfjsLib !== "undefined") {
+      resolve(window.pdfjsLib);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.onload = function () {
+      if (typeof window.pdfjsLib !== "undefined") {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        resolve(window.pdfjsLib);
+      } else {
+        reject(new Error("Biblioteca PDF.js carregou mas não iniciou."));
+      }
+    };
+    script.onerror = function () {
+      reject(new Error("Não foi possível baixar o leitor de PDF. Verifique sua internet."));
+    };
+    document.head.appendChild(script);
+  });
+}
 
 function abrirPainelPdf() {
   const painel = document.getElementById("painelImportarPdf");
@@ -1729,7 +1741,7 @@ document.getElementById("btnProcessarPdf").addEventListener("click", async funct
       textoCompleto += "\n" + linhasPagina;
     }
 
-    const regexTransacao = /(\d{2}\/\d{2})(?:\/\d{2,4})?\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})/g;
+    const regexTransacao = /(\d{2}\/\d{2})(?:\/\d{2,4})?\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})(\s*-)?/g;
     let match;
     itensExtraidosPdf = [];
 
@@ -1737,10 +1749,11 @@ document.getElementById("btnProcessarPdf").addEventListener("click", async funct
       const diaMes = match.at(1);
       const desc = match.at(2).trim();
       const valorStr = match.at(3).replace(/\./g, "").replace(",", ".");
+      const sinalMenosDepois = match.at(4);
       const valor = parseFloat(valorStr);
 
-      if (/PAGAMENTO|SALDO ANTERIOR|TOTAL DA FATURA|CREDITO EM CONTA|ENCARGOS/.test(desc.toUpperCase())) continue;
-      if (isNaN(valor) || valor <= 0) continue;
+      if (/PAGTO|PAGAMENTO|SALDO ANTERIOR|TOTAL DA FATURA|CREDITO|ESTORNO|ENCARGOS/.test(desc.toUpperCase())) continue;
+      if (sinalMenosDepois || isNaN(valor) || valor <= 0) continue;
 
       const dia = diaMes.split("/").at(0);
       itensExtraidosPdf.push({
@@ -1831,33 +1844,6 @@ document.getElementById("btnConfirmarPdf").addEventListener("click", function ()
   alert("Fatura detalhada importada com sucesso! Clique em '☁️ Salvar no GitHub' para gravar na nuvem.");
 });
 
-function garantirPdfJsCarregado() {
-  return new Promise(function (resolve, reject) {
-    if (typeof window.pdfjsLib !== "undefined") {
-      resolve(window.pdfjsLib);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    script.onload = function () {
-      if (typeof window.pdfjsLib !== "undefined") {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-          window.location.protocol + "//cdnjs.cloudflare." + "com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        resolve(window.pdfjsLib);
-      } else {
-        reject(new Error("Biblioteca PDF.js carregou mas não iniciou."));
-      }
-    };
-    script.onerror = function () {
-      reject(new Error("Não foi possível baixar o leitor de PDF. Verifique sua internet."));
-    };
-    document.head.appendChild(script);
-  });
-}
-
-
-  
 // ----------------------
 // Inicialização
 // ----------------------
