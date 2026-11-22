@@ -1645,36 +1645,174 @@ const MICRO_CATEGORIAS = Array.of(
   "Outras desesas"
 );
 
+// ----------------------
+// Classificador Inteligente Calibrado (BB, Bradesco, Nu, Porto)
+// ----------------------
+
 function classificarMicroGrupo(descricao) {
   const txt = descricao.toUpperCase();
 
-  if (/IFOOD|UBER EATS|RAPPI|OUTBACK|RUSTIKOS|CAFETER|GALPAO COLONIA|RESTAURANTE|LANCHE|PIZZA|BURGER|AÇAÍ|ACAI|CHURRASC|SUSHI/.test(txt)) {
+  // 1. Alimentação, Restaurantes e Delivery
+  if (/IFOOD|UBER EATS|RAPPI|OUTBACK|RUSTIKOS|CAFETER|GALPAO COLONIA|RESTAURANTE|LANCHE|PIZZA|BURGER|AÇAÍ|ACAI|THE BEST ACAI|CHURRASC|SUSHI/.test(txt)) {
     return "Alimentação/Restaurantes";
   }
-  if (/PADOCA|PADARIA|PANIFIC|BIG REAL|SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA/.test(txt)) {
+  // 2. Supermercado, Padaria e Mercearia
+  if (/PADOCA|PADARIA|PANIFIC|BIG REAL|SUPERMERCADO|MERCADO|ATACAD|JACOMAR|CONDOR|FESTVAL|MUFFATO|CARREFOUR|ASSAI|MAX ATACADISTA|ZAS VENDA|SUPERMERCADOEM/.test(txt)) {
     return "Supermercado/Padaria";
   }
-  if (/POSTO|KLEMTZ|COMBUST|IPIRANGA|SHELL|PETROBRAS|VELOE|SEM PARAR|PEDAGIO|BRADESCO AUT|ESTACIONAMENTO|ESTAR/.test(txt)) {
+  // 3. Combustível, Transporte, Auto e Seguros
+  if (/POSTO|KLEMTZ|COMBUST|IPIRANGA|SHELL|PETROBRAS|RICARDO GAS|VELOE|SEM PARAR|PEDAGIO|BRADESCO AUT|CENTRO AUTOMOTI|WEJ CENTRO|UBER|99APP|ESTACIONAMENTO|ESTAR/.test(txt)) {
     return "Combustível/Auto/Seguro";
   }
-  if (/RAIA|DROGA|FARMACIA|NISSEI|HIPERFARMA|PANVEL|CLINICA|SAUDE|HOSPITAL|LAB|ODONTO|EXAME/.test(txt)) {
+  // 4. Farmácia, Saúde e Estética/Clínicas
+  if (/RAIA|DROGA|FARMACIA|DEFARMA|FARMAGNUS|NISSEI|HIPERFARMA|PANVEL|CLINICA|BIOME|BRUNA REICHARDT|SAUDE|HOSPITAL|LAB|ODONTO|EXAME|GROWTHSUPPLEMENTS/.test(txt)) {
     return "Farmácia/Saúde";
   }
-  if (/GOL LINHAS|LATAM|AZUL|POUSADA|IBIS|HOTEL|AIRBNB|BOOKING|DECOLAR|HOTEIS/.test(txt)) {
+  // 5. Viagens, Passagens Aéreas e Hospedagem
+  if (/GOL LINHAS|LATAM|AZUL|POUSADA|IBIS|HOTEL|AIRBNB|BOOKING|DECOLAR|HOTEIS|PRIMEPASSAPOR/.test(txt)) {
     return "Viagens/Hospedagem";
   }
-  if (/HAVAN|MERCADO LIVRE|MERCADOLIVRE|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO/.test(txt)) {
+  // 6. Compras, Vestuário e Lojas
+  if (/HAVAN|MERCADO LIVRE|MERCADOLIV|SHOPEE|SHEIN|AMAZON|MAGALU|RENNER|CEA|C&A|RIACHUELO|ZARA|CENTAURO|BOTICARIO|AMERICANAS|VITRINE DA PRECIOSA|PE GIGANTE|SHOPPING|BARIGUI|PIX NO CREDITO/.test(txt)) {
     return "Compras/Lojas";
   }
-  if (/BARBEARIA|SALAO|ESTETICA|ESPACOLASER|SEGURO SUPERPROTEGIDO|SEGURO/.test(txt)) {
+  // 7. Cuidados Pessoais, Tarifas e Serviços
+  if (/BARBEARIA|EDUSHAIR|GRUPO YBERA|SALAO|ESTETICA|ESPACOLASER|SEGURO|ANUIDADE|ULTRAVIOLETA|FAZENDA RIO GDE/.test(txt)) {
     return "Cuidados Pessoais/Serviços";
   }
-  if (/NETFLIX|SPOTIFY|APPLE|GOOGLE|PRIME|DISNEY|HBO|CINEMA|INGRESSO|SMART FIT|TOTALPASS/.test(txt)) {
+  // 8. Assinaturas e Lazer
+  if (/NETFLIX|SPOTIFY|APPLE|GOOGLE|PRIME|AMAZONPRIME|AMAZON MUSIC|MICROSOFT|DISNEY|HBO|CINEMA|INGRESSO|SMART FIT|TOTALPASS|TOTAL PASS/.test(txt)) {
     return "Assinaturas/Lazer";
   }
 
   return "Outras despesas";
 }
+
+// ----------------------
+// Leitor Universal (CSV Nubank + PDF BB, Bradesco e Porto)
+// ----------------------
+
+document.getElementById("btnProcessarPdf").addEventListener("click", async function () {
+  const arquivo = document.getElementById("inputArquivoPdf").files.item(0);
+  const mesFatura = document.getElementById("pdfMesFatura").value;
+  const origem = document.getElementById("pdfOrigemCartao").value;
+
+  if (!arquivo) return alert("Selecione o arquivo PDF ou CSV da fatura primeiro.");
+  if (!mesFatura) return alert("Informe o Mês da Fatura (ex: 2026-11).");
+
+  const btn = this;
+  btn.disabled = true;
+  btn.innerText = "⏳ Processando...";
+  itensExtraidosPdf = [];
+
+  try {
+    // CASO 1: ARQUIVO CSV (Ex: Nubank)
+    if (arquivo.name.toLowerCase().endsWith(".csv")) {
+      const textoCsv = await arquivo.text();
+      const linhas = textoCsv.split(/\r?\n/);
+
+      for (let i = 1; i < linhas.length; i++) {
+        const linha = linhas.at(i).trim();
+        if (!linha) continue;
+
+        // Separa colunas respeitando aspas: date,title,"amount"
+        const matchCsv = linha.match(/^(\d{4}-\d{2}-\d{2}),(.*?),"(-?\s*[\d\.,]+)"$/);
+        if (!matchCsv) continue;
+
+        const dataCompra = matchCsv.at(1);
+        const desc = matchCsv.at(2).trim();
+        const valorRaw = matchCsv.at(3).replace(/\s+/g, "").replace(/\./g, "").replace(",", ".");
+        const valor = parseFloat(valorRaw);
+
+        if (/PAGAMENTO|ESTORNO|CREDITO/.test(desc.toUpperCase())) continue;
+        if (isNaN(valor) || valor <= 0) continue;
+
+        const dia = dataCompra.split("-").at(2);
+        itensExtraidosPdf.push({
+          data: mesFatura + "-" + dia,
+          descricao: desc,
+          categoria: "Cartões",
+          subcategoria: classificarMicroGrupo(desc),
+          origem: origem,
+          valor: valor
+        });
+      }
+    } else {
+      // CASO 2: ARQUIVO PDF (BB, Bradesco, Porto, Hiper)
+      const pdfjs = await garantirPdfJsCarregado();
+      const arrayBuffer = await arquivo.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      let textoCompleto = "";
+
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        textoCompleto += "\n" + content.items.map(i => i.str).join(" ");
+      }
+
+      // Padrão 1: DD/MM (BB e Bradesco) com suporte opcional a "BR" e "R$" antes do valor
+      const regexBr = /(\d{2}\/\d{2})(?:\/\d{2,4})?\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+(?:R\$\s*)?(-?\s*\d{1,3}(?:\.\d{3})*,\d{2})(\s*-)?/g;
+      let match;
+
+      while ((match = regexBr.exec(textoCompleto)) !== null) {
+        const diaMes = match.at(1);
+        let desc = match.at(2).replace(/\s+BR$/i, "").trim();
+        const valorStr = match.at(3).replace(/\s+/g, "").replace(/\./g, "").replace(",", ".");
+        const sinalMenosDepois = match.at(4);
+        const valor = parseFloat(valorStr);
+
+        if (/PAGTO|PAGAMENTO|SALDO ANTERIOR|SALDO FATURA|TOTAL DA FATURA|CREDITO|ESTORNO|ENCARGOS|IOF|JUROS/.test(desc.toUpperCase())) continue;
+        if (sinalMenosDepois || isNaN(valor) || valor <= 0) continue;
+
+        const dia = diaMes.split("/").at(0);
+        itensExtraidosPdf.push({
+          data: mesFatura + "-" + dia,
+          descricao: desc,
+          categoria: "Cartões",
+          subcategoria: classificarMicroGrupo(desc),
+          origem: origem,
+          valor: valor
+        });
+      }
+
+      // Padrão 2: Porto Bank (Ex: "04 NOV ANUIDADE DIFERENCIADA R$ 39,00")
+      if (itensExtraidosPdf.length === 0) {
+        const regexPorto = /(\d{2})\s+(?:JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
+        while ((match = regexPorto.exec(textoCompleto)) !== null) {
+          const dia = match.at(1);
+          const desc = match.at(2).trim();
+          const valorStr = match.at(3).replace(/\./g, "").replace(",", ".");
+          const valor = parseFloat(valorStr);
+
+          if (/PAGAMENTO|SALDO|SUBTOTAL|DESPESAS/.test(desc.toUpperCase())) continue;
+          if (isNaN(valor) || valor <= 0) continue;
+
+          itensExtraidosPdf.push({
+            data: mesFatura + "-" + dia,
+            descricao: desc,
+            categoria: "Cartões",
+            subcategoria: classificarMicroGrupo(desc),
+            origem: origem,
+            valor: valor
+          });
+        }
+      }
+    }
+
+    if (itensExtraidosPdf.length === 0) {
+      alert("Nenhuma compra identificada neste arquivo. Verifique se o arquivo é a fatura fechada em PDF ou CSV.");
+    } else {
+      document.getElementById("areaRevisaoPdf").style.display = "block";
+      renderizarTabelaPdf();
+    }
+  } catch (err) {
+    alert("Erro ao ler fatura: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "🔍 Ler Fatura";
+  }
+});
+
 
 function garantirPdfJsCarregado() {
   return new Promise(function (resolve, reject) {
@@ -1714,70 +1852,6 @@ document.getElementById("btnFecharPdf").addEventListener("click", function () {
   document.getElementById("painelImportarPdf").style.display = "none";
   document.getElementById("areaRevisaoPdf").style.display = "none";
   itensExtraidosPdf = [];
-});
-
-document.getElementById("btnProcessarPdf").addEventListener("click", async function () {
-  const arquivo = document.getElementById("inputArquivoPdf").files.item(0);
-  const mesFatura = document.getElementById("pdfMesFatura").value;
-  const origem = document.getElementById("pdfOrigemCartao").value;
-
-  if (!arquivo) return alert("Selecione o arquivo PDF da fatura primeiro.");
-  if (!mesFatura) return alert("Informe o Mês da Fatura (ex: 2026-11).");
-
-  const btn = this;
-  btn.disabled = true;
-  btn.innerText = "⏳ Lendo PDF...";
-
-  try {
-    const pdfjs = await garantirPdfJsCarregado();
-    const arrayBuffer = await arquivo.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-    let textoCompleto = "";
-
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      const linhasPagina = content.items.map(i => i.str).join(" ");
-      textoCompleto += "\n" + linhasPagina;
-    }
-
-    const regexTransacao = /(\d{2}\/\d{2})(?:\/\d{2,4})?\s+([A-Za-zÀ-ÿ0-9\s\*\-\.\/]+?)\s+(-?\d{1,3}(?:\.\d{3})*,\d{2})(\s*-)?/g;
-    let match;
-    itensExtraidosPdf = [];
-
-    while ((match = regexTransacao.exec(textoCompleto)) !== null) {
-      const diaMes = match.at(1);
-      const desc = match.at(2).trim();
-      const valorStr = match.at(3).replace(/\./g, "").replace(",", ".");
-      const sinalMenosDepois = match.at(4);
-      const valor = parseFloat(valorStr);
-
-      if (/PAGTO|PAGAMENTO|SALDO ANTERIOR|TOTAL DA FATURA|CREDITO|ESTORNO|ENCARGOS/.test(desc.toUpperCase())) continue;
-      if (sinalMenosDepois || isNaN(valor) || valor <= 0) continue;
-
-      const dia = diaMes.split("/").at(0);
-      itensExtraidosPdf.push({
-        data: mesFatura + "-" + dia,
-        descricao: desc,
-        categoria: "Cartões",
-        subcategoria: classificarMicroGrupo(desc),
-        origem: origem,
-        valor: valor
-      });
-    }
-
-    if (itensExtraidosPdf.length === 0) {
-      alert("Não foi possível identificar linhas automáticas neste PDF. Verifique se o PDF permite selecionar texto.");
-    } else {
-      document.getElementById("areaRevisaoPdf").style.display = "block";
-      renderizarTabelaPdf();
-    }
-  } catch (err) {
-    alert("Erro ao ler PDF: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "🔍 Ler Fatura";
-  }
 });
 
 function renderizarTabelaPdf() {
